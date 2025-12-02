@@ -1,0 +1,11 @@
+bin/
+obj/
+appsettings.json
+appsettings.Development.json
+.vscode/
+*.user
+*.suo
+.vs/
+.vs/ProjectEvaluation/proyecto-nutricionista.projects.v9.bin
+*.bin
+/.vs
