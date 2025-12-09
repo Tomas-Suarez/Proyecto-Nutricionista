@@ -4,11 +4,11 @@ using backend.Dtos.response;
 using backend.Models;
 using backend.Enum;
 
-namespace backend.Mappings
+namespace backend.Mapping
 {
-    public class MappingProfile : Profile
+    public class UsuarioProfile : Profile
     {
-        public MappingProfile()
+        public UsuarioProfile()
         {
             CreateMap<UsuarioRequestDTO, UsuarioEntity>()
                 .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.Rol.ToString()))
