@@ -4,6 +4,7 @@ using backend.Dtos.response;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using backend.Models;
+using backend.Exceptions;
 
 namespace backend.Service.imp
 {
@@ -22,7 +23,7 @@ namespace backend.Service.imp
             bool existe = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
             if (existe)
             {
-                throw new Exception("El email ya se encuentra registrado");
+                throw new DuplicateResourceException($"El email {dto.Email} ya se encuentra registrado");
             }
 
             var usuarioEntity = _usuarioMapper.Map<UsuarioEntity>(dto);
@@ -41,13 +42,13 @@ namespace backend.Service.imp
         {
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == dto.Email)
-                ?? throw new Exception("Credenciales incorrectas");
+                ?? throw new InvalidCredentialsException("Credenciales incorrectas");
 
-            bool PwValida = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.Password_Hash);
+            bool pwValida = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.Password_Hash);
 
-            if (!PwValida)
+            if (!pwValida)
             {
-                throw new Exception("Credenciales incorrectas");
+                throw new InvalidCredentialsException("Credenciales incorrectas");
             }
 
             return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
@@ -57,13 +58,13 @@ namespace backend.Service.imp
         {
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Id_Usuario == idUsuario)
-                ?? throw new Exception("No se encontro el usuario con el id: " + idUsuario);
+                ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {idUsuario}");
 
-            bool PwValida = BCrypt.Net.BCrypt.Verify(dto.PasswordActual, usuario.Password_Hash);
+            bool pwValida = BCrypt.Net.BCrypt.Verify(dto.PasswordActual, usuario.Password_Hash);
     
-            if (!PwValida)
+            if (!pwValida)
             {
-                throw new Exception("La contraseña actual es incorrecta.");
+                throw new InvalidCredentialsException("La contraseña actual es incorrecta.");
             }
 
             usuario.Password_Hash = BCrypt.Net.BCrypt.HashPassword(dto.PasswordNueva);
@@ -79,7 +80,7 @@ namespace backend.Service.imp
         {
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Id_Usuario == idUsuario)
-                ?? throw new Exception("No se encontro el usuario con el id: " + idUsuario);
+                ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {idUsuario}");
 
             return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
         }

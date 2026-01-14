@@ -2,14 +2,18 @@ using backend.Data;
 using backend.Mapping;
 using backend.Service;
 using backend.Service.imp;
+using backend.Middleware; 
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// (RFC 7807)
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddControllers();
 
@@ -35,6 +39,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Ocurrió un error al migrar la base de datos.");
     }
 }
+app.UseExceptionHandler(); 
 
 if (app.Environment.IsDevelopment())
 {
@@ -42,6 +47,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
