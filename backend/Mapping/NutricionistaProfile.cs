@@ -19,7 +19,7 @@ public class NutricionistaProfile : Profile
             .ForMember(dest => dest.Usuario, opt => opt.Ignore());
 
         CreateMap<NutricionistaEntity, NutricionistaResponseDTO>()
-            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Usuario.Email))
-            .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src => $"{src.Nombre} {src.Apellido}"));
+            .ForCtorParam("NombreCompleto", opt => opt.MapFrom(src => $"{src.Nombre} {src.Apellido}"))
+            .ForCtorParam("Email", opt => opt.MapFrom(src => src.Usuario.Email));
     }
 }
