@@ -9,6 +9,11 @@ public class NutricionistaProfile : Profile
 {
     public NutricionistaProfile()
     {
+        CreateMap<RegistroNutricionistaDTO, NutricionistaEntity>()
+            .ForMember(dest => dest.Id_Nutricionista, opt => opt.Ignore())
+            .ForMember(dest => dest.Id_Usuario, opt => opt.Ignore())
+            .ForMember(dest => dest.Usuario, opt => opt.Ignore());
+
         CreateMap<NutricionistaRequestDTO, NutricionistaEntity>()
             .ForMember(dest => dest.Id_Nutricionista, opt => opt.Ignore())
             .ForMember(dest => dest.Usuario, opt => opt.Ignore());
