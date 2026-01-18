@@ -30,7 +30,8 @@ public class PacienteProfile : Profile
                 src.Dni,
                 src.Usuario != null ? src.Usuario.Email : string.Empty,
                 src.Telefono,
-                src.Altura_Cm
+                src.Altura_Cm,
+                src.Estado.ToString()
             ));     
     }
 }

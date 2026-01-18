@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend.Enum;
 
 namespace backend.Models;
 
@@ -46,4 +47,7 @@ public class PacienteEntity
 
     [Required]
     public decimal Altura_Cm { get; set; }
+
+    public EEstadoPaciente Estado { get; set; } = EEstadoPaciente.Activo;
+
 }

@@ -7,5 +7,6 @@ public record PacienteResponseDTO(
     string Dni,
     string Email,
     string? Telefono,
-    decimal Altura_Cm
+    decimal Altura_Cm,
+    string Estado
 );
