@@ -45,9 +45,5 @@ public class PacienteEntity
     public decimal Peso_Inicial { get; set; }
 
     [Required]
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal Peso_Actual { get; set; }
-
-    [Required]
     public decimal Altura_Cm { get; set; }
 }
