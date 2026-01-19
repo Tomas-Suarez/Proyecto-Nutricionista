@@ -20,11 +20,16 @@ namespace backend.Models
         [Column(TypeName = "decimal(5,2)")]
         public decimal Peso_Kg { get; set; }
 
+        [Column(TypeName = "decimal(4,1)")]
+        public decimal? Porcentaje_Grasa { get; set; }
+
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal? Masa_Muscular_Kg { get; set; }
+
         [Required]
         public DateTime Fecha_Pesaje { get; set; } = DateTime.Now;
 
-        [Required]
         [StringLength(256)]
-        public string Nota { get; set; } = string.Empty;
+        public string? Nota { get; set; } = string.Empty;
     }
 }
