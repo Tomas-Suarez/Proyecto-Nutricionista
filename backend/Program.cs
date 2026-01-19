@@ -19,6 +19,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<INutricionistaService, NutricionistaService>();
+builder.Services.AddScoped<IPacienteService, PacienteService>();
+
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(UsuarioProfile).Assembly);
 

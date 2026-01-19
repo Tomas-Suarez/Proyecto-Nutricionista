@@ -19,7 +19,8 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             { typeof(ResourceNotFoundException), HttpStatusCode.NotFound },
             { typeof(DuplicateResourceException), HttpStatusCode.Conflict },
-            { typeof(InvalidCredentialsException), HttpStatusCode.Unauthorized }
+            { typeof(InvalidCredentialsException), HttpStatusCode.Unauthorized },
+            { typeof(BadRequestException), HttpStatusCode.BadRequest}
         };
     }
 

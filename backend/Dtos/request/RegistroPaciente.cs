@@ -8,10 +8,6 @@ public record RegistroPacienteDTO(
     [EmailAddress(ErrorMessage = "El formato del email no es válido.")]
     string Email,
 
-    [Required(ErrorMessage = "La contraseña es obligatoria.")]
-    [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres.")]
-    string Password,
-
     [Required(ErrorMessage = "El ID del nutricionista es obligatorio.")]
     int Id_Nutricionista,
 

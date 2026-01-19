@@ -28,6 +28,14 @@ public class PacienteService : IPacienteService
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
+        var nutricionistaExiste = await _context.Nutricionistas
+            .AnyAsync(n => n.Id_Nutricionista == dto.Id_Nutricionista);
+
+        if (!nutricionistaExiste)
+        {
+            throw new ResourceNotFoundException($"No se encontró una nutricionista con el ID: {dto.Id_Nutricionista}");
+        }
+
         var usuarioExiste = await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
@@ -35,39 +43,32 @@ public class PacienteService : IPacienteService
 
         if (usuarioExiste == null)
         {
-            var usuarioDto = new UsuarioRequestDTO(
-                dto.Email,
-                dto.Dni,
-                ERol.Paciente
-                );
-
+            var usuarioDto = new UsuarioRequestDTO(dto.Email, dto.Dni, ERol.Paciente);
             var nuevoUsuario = await _usuarioService.RegistrarUsuario(usuarioDto);
             idUsuario = nuevoUsuario.Id_Usuario;
         }
         else
         {
             idUsuario = usuarioExiste.Id_Usuario;
-            bool esPaciente = await _context.Pacientes
+            bool yaEsPaciente = await _context.Pacientes
                 .AnyAsync(p => p.Id_Usuario == idUsuario && p.Id_Nutricionista == dto.Id_Nutricionista);
 
-            if (esPaciente)
+            if (yaEsPaciente)
             {
-                throw new DuplicateResourceException("El paciente ya esta se encuentra registrado en su lista");
+                throw new DuplicateResourceException("El paciente ya se encuentra registrado en su lista.");
             }
-
-            var paciente = _pacienteMapper.Map<PacienteEntity>(dto);
-            paciente.Id_Usuario = idUsuario;
-            paciente.Estado = EEstadoPaciente.Activo;
-
-            _context.Pacientes.Add(paciente);
-            await _context.SaveChangesAsync();
-
-            await transaction.CommitAsync();
-
-            return await ObtenerPacienteConDetalles(paciente.Id_Paciente);
         }
 
-        throw new NotImplementedException();
+        var paciente = _pacienteMapper.Map<PacienteEntity>(dto);
+        paciente.Id_Usuario = idUsuario;
+        paciente.Estado = EEstadoPaciente.Activo;
+
+        _context.Pacientes.Add(paciente);
+        await _context.SaveChangesAsync();
+
+        await transaction.CommitAsync();
+
+        return await ObtenerPacienteConDetalles(paciente.Id_Paciente);
     }
 
     public async Task<PacienteResponseDTO> ObtenerPorUsuarioId(int idUsuario)
@@ -82,6 +83,11 @@ public class PacienteService : IPacienteService
 
     public async Task CambiarEstado(int idPaciente, EEstadoPaciente nuevoEstado)
     {
+        if (!System.Enum.IsDefined(typeof(EEstadoPaciente), nuevoEstado))
+        {
+            throw new BadRequestException($"El valor {nuevoEstado} no es un estado válido.");
+        }
+
         var paciente = await _context.Pacientes
             .FirstOrDefaultAsync(p => p.Id_Paciente == idPaciente)
             ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {idPaciente}");
@@ -112,11 +118,20 @@ public class PacienteService : IPacienteService
     }
 
     public async Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(
-        int idNutricionista, int page, int size)
+        int idNutricionista, int page, int size, EEstadoPaciente? estado)
     {
         var query = _context.Pacientes
             .Include(p => p.Usuario)
-            .Where(p => p.Id_Nutricionista == idNutricionista && p.Estado == EEstadoPaciente.Activo);
+            .Where(p => p.Id_Nutricionista == idNutricionista);
+
+        if (estado.HasValue)
+        {
+            query = query.Where(p => p.Estado == estado.Value);
+        }
+        else
+        {
+            query = query.Where(p => p.Estado == EEstadoPaciente.Activo);
+        }
 
         var totalRegistros = await query.CountAsync();
 

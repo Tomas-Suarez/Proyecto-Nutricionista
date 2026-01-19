@@ -15,7 +15,7 @@ public interface IPacienteService
 
         Task<PacienteResponseDTO> ModificarPaciente(int IdPaciente, PacienteRequestDTO dto);
 
-        Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(int idNutricionista, int page, int size);
+        Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(int idNutricionista, int page, int size, EEstadoPaciente? estado);
 
         Task CambiarEstado(int idPaciente, EEstadoPaciente nuevoEstado);
 }
