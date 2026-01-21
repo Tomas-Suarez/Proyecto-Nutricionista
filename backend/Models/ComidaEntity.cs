@@ -46,4 +46,6 @@ public class ComidaEntity
 
     [StringLength(255)]
     public string? Imagen_Url { get; set; }
+
+    public virtual ICollection<CategoriaEntity> Categorias { get; set; } = new List<CategoriaEntity>();
 }

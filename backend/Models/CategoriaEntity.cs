@@ -13,5 +13,7 @@ namespace backend.Models
         [Required]
         [StringLength(50)]
         public string Nombre { get; set; } = string.Empty;
+
+        public virtual ICollection<ComidaEntity> Comidas { get; set; } = new List<ComidaEntity>();
     }
 }
