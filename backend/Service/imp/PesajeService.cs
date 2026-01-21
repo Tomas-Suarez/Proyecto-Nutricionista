@@ -37,6 +37,8 @@ public class PesajeService : IPesajeService
         _context.Pesajes.Add(nuevoPesaje);
         await _context.SaveChangesAsync();
 
+        nuevoPesaje.Paciente = paciente;
+
         decimal pesoReferencia = ultimoPesaje?.Peso_Kg ?? paciente.Peso_Inicial;
 
         var response = _mapper.Map<PesajeResponseDTO>(nuevoPesaje);
