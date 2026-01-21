@@ -7,5 +7,6 @@ public interface ICategoriaService
 {
     Task<IEnumerable<CategoriaResponseDTO>> ObtenerTodasCategorias();
     Task<CategoriaResponseDTO> CrearCategoria(CategoriaRequestDTO dto);
-    Task EliminarCategoria(int id);
+    Task EliminarCategoria(int idCategoria);
+    Task<CategoriaResponseDTO> ObtenerPorId(int idCategoria);
 }

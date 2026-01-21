@@ -21,6 +21,8 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<INutricionistaService, NutricionistaService>();
 builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<IPesajeService, PesajeService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(UsuarioProfile).Assembly);
 

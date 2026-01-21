@@ -31,7 +31,7 @@ public class CategoriaService : ICategoriaService
     public async Task EliminarCategoria(int idCategoria)
     {
         var categoria = await _context.Categorias.FirstOrDefaultAsync(c => c.Id_Categoria == idCategoria)
-        ?? throw new ResourceNotFoundException($"No se encontró categoria con el id: {idCategoria}");
+            ?? throw new ResourceNotFoundException($"No se encontró categoria con el id: {idCategoria}");
 
         _context.Categorias.Remove(categoria);
         await _context.SaveChangesAsync();
@@ -43,4 +43,13 @@ public class CategoriaService : ICategoriaService
 
         return _categoriaMapper.Map<IEnumerable<CategoriaResponseDTO>>(categorias);
     }
+
+    public async Task<CategoriaResponseDTO> ObtenerPorId(int idCategoria)
+    {
+        var categoria = await _context.Categorias.FirstOrDefaultAsync(c => c.Id_Categoria == idCategoria)
+            ?? throw new ResourceNotFoundException($"No se encontró categoria con el id: {idCategoria}");
+
+        return _categoriaMapper.Map<CategoriaResponseDTO>(categoria);
+    }
+
 }
