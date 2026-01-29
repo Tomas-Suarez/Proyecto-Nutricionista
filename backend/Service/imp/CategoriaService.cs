@@ -51,5 +51,4 @@ public class CategoriaService : ICategoriaService
 
         return _categoriaMapper.Map<CategoriaResponseDTO>(categoria);
     }
-
 }

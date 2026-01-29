@@ -10,4 +10,5 @@ public interface IComidaService
     Task<PagedResponseDTO<ComidaResponseDTO>> ObtenerTodas(int page, int size, int? idCategoria, string? nombre);
     Task<ComidaResponseDTO> ObtenerPorId(int idComida);
     Task EliminarComida(int idComida);
+    Task<ComidaResponseDTO> ActualizarComida(int idComida, ComidaRequestDTO dto);
 }

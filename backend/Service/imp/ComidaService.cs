@@ -40,6 +40,8 @@ public class ComidaService : IComidaService
 
         _context.Comidas.Add(nuevaComida);
 
+        await _context.SaveChangesAsync();
+
         return _mapper.Map<ComidaResponseDTO>(nuevaComida);
     }
 
@@ -86,5 +88,31 @@ public class ComidaService : IComidaService
 
         _context.Comidas.Remove(comida);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<ComidaResponseDTO> ActualizarComida(int idComida, ComidaRequestDTO dto)
+    {
+        var comidaExiste = await _context.Comidas
+            .Include(c => c.Categorias)
+            .FirstOrDefaultAsync(c => c.Id_Comida == idComida)
+            ?? throw new ResourceNotFoundException($"No se encontró la comida con el id: {idComida}");
+
+        var nuevaCategorias = await _context.Categorias
+            .Where(c => dto.Ids_Categorias.Contains(c.Id_Categoria))
+            .ToListAsync();
+
+        if (nuevaCategorias.Count == 0)
+        {
+            throw new BadRequestException("Debe seleccionar categorías válidas.");
+        }
+
+        _mapper.Map(dto, comidaExiste);
+
+        decimal calculoCalorias = (dto.Proteinas * 4) + (dto.Carbohidratos * 4) + (dto.Grasas * 9);
+        comidaExiste.Calorias = (int)Math.Round(calculoCalorias);
+
+        await _context.SaveChangesAsync();
+
+        return _mapper.Map<ComidaResponseDTO>(comidaExiste);
     }
 }
