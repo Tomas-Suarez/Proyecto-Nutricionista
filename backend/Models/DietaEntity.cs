@@ -33,10 +33,11 @@ namespace backend.Models
         [Required]
         public DateTime Fecha_Inicio { get; set; }
 
-        [StringLength(20)]
         public DateTime? Fecha_Fin { get; set; }
 
         [Required]
         public bool Activa {  get; set; } = false;
+
+        public virtual ICollection<DietaComidaEntity> DietaComidas { get; set; } = new List<DietaComidaEntity>();
     }
 }

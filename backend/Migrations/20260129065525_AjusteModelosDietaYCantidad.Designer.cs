@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260129065525_AjusteModelosDietaYCantidad")]
+    partial class AjusteModelosDietaYCantidad
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,7 +81,6 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Carbohidratos")
-                        .HasPrecision(10, 2)
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("Descripcion")
@@ -89,7 +91,6 @@ namespace backend.Migrations
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<decimal>("Grasas")
-                        .HasPrecision(10, 2)
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("Imagen_Url")
@@ -107,7 +108,6 @@ namespace backend.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("Proteinas")
-                        .HasPrecision(10, 2)
                         .HasColumnType("decimal(5,2)");
 
                     b.HasKey("Id_Comida");
@@ -124,8 +124,7 @@ namespace backend.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id_Dieta_Comida"));
 
                     b.Property<decimal>("Cantidad")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("Horario")
                         .IsRequired()
@@ -148,7 +147,7 @@ namespace backend.Migrations
 
                     b.HasIndex("Id_Dieta");
 
-                    b.ToTable("Dieta_Comida", (string)null);
+                    b.ToTable("Dieta_Comida");
                 });
 
             modelBuilder.Entity("backend.Models.DietaEntity", b =>
@@ -168,6 +167,7 @@ namespace backend.Migrations
                         .HasColumnType("varchar(256)");
 
                     b.Property<DateTime?>("Fecha_Fin")
+                        .HasMaxLength(20)
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("Fecha_Inicio")
@@ -379,7 +379,7 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.HasOne("backend.Models.DietaEntity", "Dieta")
-                        .WithMany("DietaComidas")
+                        .WithMany()
                         .HasForeignKey("Id_Dieta")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -445,11 +445,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Paciente");
-                });
-
-            modelBuilder.Entity("backend.Models.DietaEntity", b =>
-                {
-                    b.Navigation("DietaComidas");
                 });
 #pragma warning restore 612, 618
         }

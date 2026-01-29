@@ -23,6 +23,9 @@ public class DietaComidaEntity
     public virtual ComidaEntity Comida { get; set; } = null!;
 
     [Required]
+    public decimal Cantidad { get; set; }
+
+    [Required]
     [StringLength(50)]
     public string Horario { get; set; } = string.Empty;
 
