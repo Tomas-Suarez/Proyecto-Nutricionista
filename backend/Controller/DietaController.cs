@@ -38,7 +38,7 @@ public class DietaController : ControllerBase
         return Ok(resultado);
     }
 
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public async Task<ActionResult> Eliminar(int id)
     {
         await _dietaService.EliminarDieta(id);
