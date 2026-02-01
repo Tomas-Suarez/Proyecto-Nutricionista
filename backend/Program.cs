@@ -4,6 +4,7 @@ using backend.Service;
 using backend.Service.imp;
 using backend.Middleware; 
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +16,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<INutricionistaService, NutricionistaService>();
@@ -23,6 +28,7 @@ builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<IPesajeService, PesajeService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IComidaService, ComidaService>();
+builder.Services.AddScoped<IDietaService, DietaService>();
 
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(UsuarioProfile).Assembly);

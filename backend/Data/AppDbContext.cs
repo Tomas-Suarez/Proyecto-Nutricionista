@@ -50,6 +50,9 @@ namespace backend.Data
 
                 entity.Property(dc => dc.Cantidad)
                       .HasPrecision(10, 2);
+                
+                entity.Property(dc => dc.Horario)
+                      .HasConversion<string>();
             });
 
             modelBuilder.Entity<ComidaEntity>(entity =>

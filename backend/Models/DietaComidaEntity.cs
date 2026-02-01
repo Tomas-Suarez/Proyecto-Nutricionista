@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend.Enum;
 
 namespace backend.Models;
 
@@ -27,7 +28,7 @@ public class DietaComidaEntity
 
     [Required]
     [StringLength(50)]
-    public string Horario { get; set; } = string.Empty;
+    public EHorarioComida Horario { get; set; }
 
     [StringLength(255)]
     public string? Nota { get; set; }

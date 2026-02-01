@@ -10,26 +10,32 @@ public class DietaProfile : Profile
     public DietaProfile()
     {
         CreateMap<DietaComidaEntity, DietaComidaResponseDTO>()
-            .ForMember(dest => dest.NombreComida, opt => opt.MapFrom(src => src.Comida.Nombre))
-            .ForMember(dest => dest.CaloriasProporcionales, opt => opt.MapFrom(src =>
+            .ForCtorParam("NombreComida", opt => opt.MapFrom(src => src.Comida.Nombre))
+            .ForCtorParam("CaloriasProporcionales", opt => opt.MapFrom(src =>
                 (int)Math.Round((src.Comida.Calorias * src.Cantidad) / 100)))
-            .ForMember(dest => dest.ProteinasProporcionales, opt => opt.MapFrom(src =>
-                (src.Comida.Proteinas * src.Cantidad) / 100))
-            .ForMember(dest => dest.CarbohidratosProporcionales, opt => opt.MapFrom(src =>
-                (src.Comida.Carbohidratos * src.Cantidad) / 100))
-            .ForMember(dest => dest.GrasasProporcionales, opt => opt.MapFrom(src =>
-                (src.Comida.Grasas * src.Cantidad) / 100));
+            .ForCtorParam("ProteinasProporcionales", opt => opt.MapFrom(src =>
+                Math.Round((src.Comida.Proteinas * src.Cantidad) / 100, 2)))
+            .ForCtorParam("CarbohidratosProporcionales", opt => opt.MapFrom(src =>
+                Math.Round((src.Comida.Carbohidratos * src.Cantidad) / 100, 2)))
+            .ForCtorParam("GrasasProporcionales", opt => opt.MapFrom(src =>
+                Math.Round((src.Comida.Grasas * src.Cantidad) / 100, 2)));
 
         CreateMap<DietaEntity, DietaResponseDTO>()
-            .ForMember(dest => dest.PacienteNombre, opt => opt.MapFrom(src =>
+            .ForCtorParam("PacienteNombre", opt => opt.MapFrom(src => 
                 $"{src.Paciente.Nombre} {src.Paciente.Apellido}"))
-            .ForMember(dest => dest.ComidasDetalle, opt => opt.MapFrom(src => src.DietaComidas))
-            .ForMember(dest => dest.TotalCalorias, opt => opt.MapFrom(src =>
-                src.DietaComidas.Sum(dc => (dc.Comida.Calorias * dc.Cantidad) / 100)))
-            .ForMember(dest => dest.TotalProteinas, opt => opt.MapFrom(src =>
-                src.DietaComidas.Sum(dc => (dc.Comida.Proteinas * dc.Cantidad) / 100)));
+            .ForCtorParam("ComidasDetalle", opt => opt.MapFrom(src => src.DietaComidas))
+            .ForCtorParam("TotalCalorias", opt => opt.MapFrom(src =>
+                Math.Round(src.DietaComidas.Sum(dc => (dc.Comida.Calorias * dc.Cantidad) / 100), 2)))
+            .ForCtorParam("TotalProteinas", opt => opt.MapFrom(src =>
+                Math.Round(src.DietaComidas.Sum(dc => (dc.Comida.Proteinas * dc.Cantidad) / 100), 2)))
+            .ForCtorParam("TotalCarbohidratos", opt => opt.MapFrom(src =>
+                Math.Round(src.DietaComidas.Sum(dc => (dc.Comida.Carbohidratos * dc.Cantidad) / 100), 2)))
+            .ForCtorParam("TotalGrasas", opt => opt.MapFrom(src =>
+                Math.Round(src.DietaComidas.Sum(dc => (dc.Comida.Grasas * dc.Cantidad) / 100), 2)));
 
-        CreateMap<DietaRequestDTO, DietaEntity>();
+        CreateMap<DietaRequestDTO, DietaEntity>()
+            .ForMember(dest => dest.DietaComidas, opt => opt.Ignore()); 
+            
         CreateMap<DietaComidaRequestDTO, DietaComidaEntity>();
     }
 }
