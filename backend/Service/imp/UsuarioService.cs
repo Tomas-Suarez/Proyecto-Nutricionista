@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using backend.Models;
 using backend.Exceptions;
+using backend.Jwt;
+using System.Data;
 
 namespace backend.Service.imp
 {
@@ -12,11 +14,13 @@ namespace backend.Service.imp
     {
         private readonly AppDbContext _context;
         private readonly IMapper _usuarioMapper;
+        private readonly JwtTokenGenerator _jwtGenerator;
 
-        public UsuarioService(AppDbContext context, IMapper usuarioMapper)
+        public UsuarioService(AppDbContext context, IMapper usuarioMapper, JwtTokenGenerator jwtGenerator)
         {
             _context = context;
             _usuarioMapper = usuarioMapper;
+            _jwtGenerator = jwtGenerator;
         }
         public async Task<UsuarioResponseDTO> RegistrarUsuario(UsuarioRequestDTO dto)
         {
@@ -38,7 +42,7 @@ namespace backend.Service.imp
             return _usuarioMapper.Map<UsuarioResponseDTO>(usuarioEntity);
         }
 
-        public async Task<UsuarioResponseDTO> LoguearUsuario(UsuarioRequestDTO dto)
+        public async Task<LoginResponseDTO> LoguearUsuario(UsuarioRequestDTO dto)
         {
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == dto.Email)
@@ -51,7 +55,44 @@ namespace backend.Service.imp
                 throw new InvalidCredentialsException("Credenciales incorrectas");
             }
 
-            return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
+            var accessToken = _jwtGenerator.GenerateToken(usuario);
+            var refreshToken = Guid.NewGuid().ToString();
+
+            usuario.RefreshToken = refreshToken;
+            usuario.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            await _context.SaveChangesAsync();
+
+            return new LoginResponseDTO(
+                _usuarioMapper.Map<UsuarioResponseDTO>(usuario),
+                accessToken,
+                refreshToken
+            );
+        }
+
+        public async Task<LoginResponseDTO> RefrescarToken(string refreshTokenActual)
+        {
+            var usuario = await _context.Usuarios
+            .FirstOrDefaultAsync(u => u.RefreshToken == refreshTokenActual);
+
+            if (usuario == null || usuario.RefreshTokenExpiry < DateTime.UtcNow)
+            {
+                throw new SessionExpiredException();
+            }
+
+            var nuevoRefreshToken = Guid.NewGuid().ToString();
+            usuario.RefreshToken = nuevoRefreshToken;
+            usuario.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+            var nuevoAccessToken = _jwtGenerator.GenerateToken(usuario);
+
+            await _context.SaveChangesAsync();
+
+            return new LoginResponseDTO(
+                _usuarioMapper.Map<UsuarioResponseDTO>(usuario),
+                nuevoAccessToken,
+                nuevoRefreshToken
+            );
+
         }
 
         public async Task<UsuarioResponseDTO> CambiarPassword(int idUsuario, CambiarPasswordRequestDTO dto)
@@ -61,7 +102,7 @@ namespace backend.Service.imp
                 ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {idUsuario}");
 
             bool pwValida = BCrypt.Net.BCrypt.Verify(dto.PasswordActual, usuario.Password_Hash);
-    
+
             if (!pwValida)
             {
                 throw new InvalidCredentialsException("La contraseña actual es incorrecta.");

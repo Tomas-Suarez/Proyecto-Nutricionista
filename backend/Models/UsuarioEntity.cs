@@ -24,5 +24,9 @@ namespace backend.Models
 
         [StringLength(255)]
         public string? Avatar_Url { get; set; }
+
+        public string? RefreshToken { get; set; }
+        
+        public DateTime? RefreshTokenExpiry { get; set; }
     }
 }

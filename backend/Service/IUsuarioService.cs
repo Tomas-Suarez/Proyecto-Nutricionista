@@ -7,10 +7,13 @@ namespace backend.Service
     {
         Task<UsuarioResponseDTO> RegistrarUsuario(UsuarioRequestDTO dto);
 
-        Task<UsuarioResponseDTO> LoguearUsuario(UsuarioRequestDTO dto);
+        Task<LoginResponseDTO> LoguearUsuario(UsuarioRequestDTO dto);
+        
+        Task<LoginResponseDTO> RefrescarToken(string refreshTokenActual);
 
         Task<UsuarioResponseDTO> CambiarPassword(int idUsuario, CambiarPasswordRequestDTO dto);
         
         Task<UsuarioResponseDTO> ObtenerUsuarioPorId(int idUsuario);
+
     }
 }
