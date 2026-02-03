@@ -2,13 +2,14 @@ using backend.Data;
 using backend.Mapping;
 using backend.Service;
 using backend.Service.imp;
-using backend.Middleware; 
+using backend.Middleware;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using backend.Jwt;
+using static backend.Constants.AuthConstants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ClockSkew = TimeSpan.Zero
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies[ACCESS_TOKEN_COOKIE];
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -71,7 +82,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Ocurrió un error al migrar la base de datos.");
     }
 }
-app.UseExceptionHandler(); 
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
