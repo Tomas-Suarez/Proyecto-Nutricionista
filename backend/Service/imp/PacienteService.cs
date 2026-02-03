@@ -6,6 +6,7 @@ using backend.Dtos.response;
 using backend.Enum;
 using backend.Exceptions;
 using backend.Models;
+using backend.Service.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Service.imp;
@@ -16,25 +17,29 @@ public class PacienteService : IPacienteService
     private readonly AppDbContext _context;
     private readonly IMapper _pacienteMapper;
     private readonly IUsuarioService _usuarioService;
+    private readonly ICurrentUserService _currentUserService;
 
-    public PacienteService(AppDbContext context, IMapper pacienteMapper, IUsuarioService usuarioService)
+    public PacienteService(AppDbContext context, IMapper pacienteMapper, IUsuarioService usuarioService, ICurrentUserService currentUserService)
     {
         _context = context;
         _pacienteMapper = pacienteMapper;
         _usuarioService = usuarioService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PacienteResponseDTO> RegistrarPaciente(RegistroPacienteDTO dto)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        var nutricionistaExiste = await _context.Nutricionistas
-            .AnyAsync(n => n.Id_Nutricionista == dto.Id_Nutricionista);
-
-        if (!nutricionistaExiste)
+        if (!_currentUserService.IsNutricionista() && !_currentUserService.IsAdmin())
         {
-            throw new ResourceNotFoundException($"No se encontró una nutricionista con el ID: {dto.Id_Nutricionista}");
+            throw new AccessDeniedException("Solo los nutricionistas pueden registrar pacientes.");
         }
+
+        var usuarioLogueadoId = _currentUserService.GetUserId();
+        var nutricionista = await _context.Nutricionistas
+            .FirstOrDefaultAsync(n => n.Id_Usuario == usuarioLogueadoId)
+            ?? throw new ResourceNotFoundException("No se encontró tu perfil de profesional.");
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         var usuarioExiste = await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Email == dto.Email);
@@ -51,8 +56,7 @@ public class PacienteService : IPacienteService
         {
             idUsuario = usuarioExiste.Id_Usuario;
             bool yaEsPaciente = await _context.Pacientes
-                .AnyAsync(p => p.Id_Usuario == idUsuario && p.Id_Nutricionista == dto.Id_Nutricionista);
-
+                .AnyAsync(p => p.Id_Usuario == idUsuario && p.Id_Nutricionista == nutricionista.Id_Nutricionista);
             if (yaEsPaciente)
             {
                 throw new DuplicateResourceException("El paciente ya se encuentra registrado en su lista.");
@@ -60,7 +64,9 @@ public class PacienteService : IPacienteService
         }
 
         var paciente = _pacienteMapper.Map<PacienteEntity>(dto);
+        
         paciente.Id_Usuario = idUsuario;
+        paciente.Id_Nutricionista = nutricionista.Id_Nutricionista;
         paciente.Estado = EEstadoPaciente.Activo;
 
         _context.Pacientes.Add(paciente);

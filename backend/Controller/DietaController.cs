@@ -1,10 +1,13 @@
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static backend.Enum.ERol;
 
 namespace backend.Controller;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class DietaController : ControllerBase
@@ -16,6 +19,7 @@ public class DietaController : ControllerBase
         _dietaService = dietaService;
     }
 
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpPost]
     public async Task<ActionResult<DietaResponseDTO>> Registrar([FromBody] DietaRequestDTO dto)
     {
@@ -24,6 +28,7 @@ public class DietaController : ControllerBase
         return CreatedAtAction(nameof(ObtenerPorId), new { id = resultado.Id_Dieta }, resultado);
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
     [HttpGet("{id}")]
     public async Task<ActionResult<DietaResponseDTO>> ObtenerPorId(int id)
     {
@@ -31,6 +36,7 @@ public class DietaController : ControllerBase
         return Ok(resultado);
     }
 
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpPut("{id}")]
     public async Task<ActionResult<DietaResponseDTO>> Actualizar(int id, [FromBody] DietaRequestDTO dto)
     {
@@ -38,6 +44,7 @@ public class DietaController : ControllerBase
         return Ok(resultado);
     }
 
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Eliminar(int id)
     {
@@ -45,6 +52,7 @@ public class DietaController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
     [HttpGet("paciente/{idPaciente}/historial")]
     public async Task<ActionResult<IEnumerable<DietaResponseDTO>>> ObtenerHistorial(int idPaciente)
     {
@@ -52,6 +60,7 @@ public class DietaController : ControllerBase
         return Ok(resultado);
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
     [HttpGet("paciente/{idPaciente}/activa")]
     public async Task<ActionResult<DietaResponseDTO>> ObtenerActiva(int idPaciente)
     {
@@ -59,6 +68,7 @@ public class DietaController : ControllerBase
         return Ok(resultado);
     }
 
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpPatch("{id}/activar/{idPaciente}")]
     public async Task<IActionResult> ActivarDieta(int id, int idPaciente)
     {

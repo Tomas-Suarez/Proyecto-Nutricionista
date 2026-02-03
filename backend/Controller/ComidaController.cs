@@ -2,10 +2,13 @@ using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static backend.Enum.ERol;
 
 namespace backend.Controller;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ComidaController : ControllerBase
@@ -18,6 +21,7 @@ public class ComidaController : ControllerBase
         _comidaService = comidaService;
     }
 
+    [Authorize(Roles = nameof(Admin))]
     [HttpPost]
     public async Task<ActionResult<ComidaResponseDTO>> Crear([FromBody] ComidaRequestDTO dto)
     {
@@ -44,6 +48,7 @@ public class ComidaController : ControllerBase
         return Ok(lista);
     }
 
+    [Authorize(Roles = nameof(Admin))]
     [HttpDelete("{idComida}")]
     public async Task<ActionResult> EliminarComida(int idComida)
     {
@@ -51,6 +56,7 @@ public class ComidaController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = nameof(Admin))]
     [HttpPut("{idComida}")]
     public async Task<ActionResult<ComidaResponseDTO>> ActualizarComida(int idComida, ComidaRequestDTO dto)
     {

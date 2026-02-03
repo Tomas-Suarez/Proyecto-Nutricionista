@@ -20,6 +20,7 @@ namespace backend.Jwt
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, usuario.Id_Usuario.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id_Usuario.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
                 new Claim(ClaimTypes.Role, usuario.Rol.ToString()),
                 new Claim("avatar", usuario.Avatar_Url ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSul0lklnuStig202SiXNvYYD_OUvmFw9KaPA&s"),

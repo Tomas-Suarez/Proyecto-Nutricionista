@@ -8,9 +8,6 @@ public record RegistroPacienteDTO(
     [EmailAddress(ErrorMessage = "El formato del email no es válido.")]
     string Email,
 
-    [Required(ErrorMessage = "El ID del nutricionista es obligatorio.")]
-    int Id_Nutricionista,
-
     [Required(ErrorMessage = "El nombre es obligatorio.")]
     [StringLength(100, ErrorMessage = "El nombre no puede superar los 100 caracteres.")]
     string Nombre,

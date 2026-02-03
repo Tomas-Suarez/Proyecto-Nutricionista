@@ -3,6 +3,8 @@ using backend.Exceptions;
 using backend.Service;
 using static backend.Constants.AuthConstants;
 using Microsoft.AspNetCore.Mvc;
+using static backend.Enum.ERol;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controller
 {
@@ -19,6 +21,7 @@ namespace backend.Controller
             _configuration = configuration;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Registrar([FromBody] UsuarioRequestDTO dto)
         {
@@ -29,6 +32,7 @@ namespace backend.Controller
 
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UsuarioRequestDTO dto)
         {
@@ -40,6 +44,7 @@ namespace backend.Controller
 
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> ObtenerPorId(int id)
         {
@@ -49,6 +54,7 @@ namespace backend.Controller
 
         }
 
+        [Authorize]
         [HttpPatch("cambiar-password/{id}")]
         public async Task<IActionResult> CambiarPassword(int id, [FromBody] CambiarPasswordRequestDTO dto)
         {
@@ -59,6 +65,7 @@ namespace backend.Controller
 
         }
 
+        [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
@@ -76,6 +83,7 @@ namespace backend.Controller
             return Ok(resultado.Usuario);
         }
 
+        [Authorize]
         [HttpPost("logout")]
         public IActionResult Logout()
         {

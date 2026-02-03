@@ -1,10 +1,13 @@
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static backend.Enum.ERol;
 
 namespace backend.Controller;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CategoriaController : ControllerBase
@@ -16,6 +19,7 @@ public class CategoriaController : ControllerBase
         _categoriaService = categoriaService;
     }
 
+    [Authorize(Roles = nameof(Admin))]
     [HttpPost]
     public async Task<ActionResult<CategoriaResponseDTO>> Crear([FromBody] CategoriaRequestDTO dto)
     {
@@ -31,6 +35,7 @@ public class CategoriaController : ControllerBase
         return Ok(categoria);
     }
 
+    [Authorize(Roles = $"{nameof(Admin)},{nameof(Nutricionista)}")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CategoriaResponseDTO>>> ObtenerTodas()
     {
@@ -38,6 +43,7 @@ public class CategoriaController : ControllerBase
         return Ok(categorias);
     }
 
+    [Authorize(Roles = nameof(Admin))]
     [HttpDelete("{idCategoria}")]
     public async Task<IActionResult> Eliminar(int idCategoria)
     {

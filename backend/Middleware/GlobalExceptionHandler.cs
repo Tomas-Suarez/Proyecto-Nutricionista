@@ -21,7 +21,8 @@ public class GlobalExceptionHandler : IExceptionHandler
             { typeof(DuplicateResourceException), HttpStatusCode.Conflict },
             { typeof(InvalidCredentialsException), HttpStatusCode.Unauthorized },
             { typeof(SessionExpiredException), HttpStatusCode.Unauthorized },
-            { typeof(BadRequestException), HttpStatusCode.BadRequest}
+            { typeof(BadRequestException), HttpStatusCode.BadRequest},
+            { typeof(AccessDeniedException), HttpStatusCode.Forbidden}
         };
     }
 

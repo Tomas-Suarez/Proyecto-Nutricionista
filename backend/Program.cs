@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using backend.Jwt;
 using static backend.Constants.AuthConstants;
+using backend.Service.Common;
+using backend.Service.Common.imp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +62,8 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IComidaService, ComidaService>();
 builder.Services.AddScoped<IDietaService, DietaService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(UsuarioProfile).Assembly);

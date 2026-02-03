@@ -2,10 +2,13 @@ using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static backend.Enum.ERol;
 
 namespace backend.Controller;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class PesajeController : ControllerBase
@@ -18,6 +21,7 @@ public class PesajeController : ControllerBase
         _pesajeService = pesajeService;
     }
 
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpPost]
     public async Task<ActionResult<PesajeResponseDTO>> Registrar([FromBody] PesajeRequestDTO dto)
     {
@@ -26,6 +30,7 @@ public class PesajeController : ControllerBase
         return CreatedAtAction(nameof(ObtenerPorId), new { idPesaje = resultado.Id_Pesaje }, resultado);
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
     [HttpGet("{idPesaje}")]
     public async Task<ActionResult<PesajeResponseDTO>> ObtenerPorId(int idPesaje)
     {
@@ -33,6 +38,7 @@ public class PesajeController : ControllerBase
         return Ok(pesaje);
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
     [HttpGet("paciente/{idPaciente}")]
     public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerHistorial(
         int idPaciente,
@@ -43,6 +49,7 @@ public class PesajeController : ControllerBase
         return Ok(historial);
     }
 
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpDelete("{idPesaje}")]
     public async Task<IActionResult> Eliminar(int idPesaje)
     {

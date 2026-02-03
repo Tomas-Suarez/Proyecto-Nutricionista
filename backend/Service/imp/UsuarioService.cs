@@ -6,7 +6,7 @@ using AutoMapper;
 using backend.Models;
 using backend.Exceptions;
 using backend.Jwt;
-using System.Data;
+using backend.Service.Common;
 
 namespace backend.Service.imp
 {
@@ -15,12 +15,13 @@ namespace backend.Service.imp
         private readonly AppDbContext _context;
         private readonly IMapper _usuarioMapper;
         private readonly JwtTokenGenerator _jwtGenerator;
-
-        public UsuarioService(AppDbContext context, IMapper usuarioMapper, JwtTokenGenerator jwtGenerator)
+        private readonly ICurrentUserService _currentUserService;
+        public UsuarioService(AppDbContext context, IMapper usuarioMapper, JwtTokenGenerator jwtGenerator, ICurrentUserService currentUserService)
         {
             _context = context;
             _usuarioMapper = usuarioMapper;
             _jwtGenerator = jwtGenerator;
+            _currentUserService = currentUserService;
         }
         public async Task<UsuarioResponseDTO> RegistrarUsuario(UsuarioRequestDTO dto)
         {
@@ -97,6 +98,12 @@ namespace backend.Service.imp
 
         public async Task<UsuarioResponseDTO> CambiarPassword(int idUsuario, CambiarPasswordRequestDTO dto)
         {
+
+            if (idUsuario != _currentUserService.GetUserId())
+            {
+                throw new AccessDeniedException("No puedes cambiar la contraseña de otra cuenta.");
+            }
+
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Id_Usuario == idUsuario)
                 ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {idUsuario}");
@@ -119,6 +126,14 @@ namespace backend.Service.imp
 
         public async Task<UsuarioResponseDTO> ObtenerUsuarioPorId(int idUsuario)
         {
+
+            var idSolicitante = _currentUserService.GetUserId();
+
+            if (!_currentUserService.IsAdmin() && idSolicitante != idUsuario)
+            {
+                throw new AccessDeniedException("No tienes permitido el acceso");
+            }
+
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Id_Usuario == idUsuario)
                 ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {idUsuario}");

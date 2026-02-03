@@ -1,10 +1,14 @@
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static backend.Enum.ERol;
+
 
 namespace backend.Controller;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class NutricionistaController : ControllerBase
@@ -24,6 +28,7 @@ public class NutricionistaController : ControllerBase
         return CreatedAtAction(nameof(ObtenerPorId), new { id = resultado.Id_Nutricionista }, resultado);
     }
 
+    [Authorize(Roles = $"{nameof(Admin)},{nameof(Nutricionista)},{nameof(Paciente)}")]
     [HttpGet("{id}")]
     public async Task<ActionResult<NutricionistaResponseDTO>> ObtenerPorId(int id)
     {
@@ -31,6 +36,7 @@ public class NutricionistaController : ControllerBase
         return Ok(resultado);
     }
 
+    [Authorize(Roles = $"{nameof(Admin)},{nameof(Nutricionista)},{nameof(Paciente)}")]
     [HttpGet("usuario/{usuarioId}")]
     public async Task<ActionResult<NutricionistaResponseDTO>> ObtenerPorUsuarioId(int usuarioId)
     {
@@ -38,6 +44,7 @@ public class NutricionistaController : ControllerBase
         return Ok(resultado);
     }
 
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpPut("{id}")]
     public async Task<ActionResult<NutricionistaResponseDTO>> Actualizar(int id, [FromBody] NutricionistaRequestDTO dto)
     {

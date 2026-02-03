@@ -3,10 +3,14 @@ using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Enum;
 using backend.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static backend.Enum.ERol;
+
 
 namespace backend.Controller;
 
+[Authorize(Roles = nameof(Nutricionista))]
 [Route("api/[controller]")]
 [ApiController]
 public class PacienteController : ControllerBase

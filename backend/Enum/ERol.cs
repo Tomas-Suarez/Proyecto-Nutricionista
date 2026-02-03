@@ -2,6 +2,7 @@
 {
     public enum ERol
     {
+        Admin,
         Nutricionista,
         Paciente
     }
