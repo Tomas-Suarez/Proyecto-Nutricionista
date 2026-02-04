@@ -9,13 +9,13 @@ public interface IPacienteService
 {
         Task<PacienteResponseDTO> RegistrarPaciente(RegistroPacienteDTO dto);
         
-        Task<PacienteResponseDTO> ObtenerPacientePorId(int idPaciente);
+        Task<PacienteResponseDTO> ObtenerMiPerfil();
 
-        Task<PacienteResponseDTO> ObtenerPorUsuarioId(int idUsuario);
+        Task<PacienteResponseDTO> ModificarMiPerfil(PacienteRequestDTO dto);
 
         Task<PacienteResponseDTO> ModificarPaciente(int IdPaciente, PacienteRequestDTO dto);
 
-        Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(int idNutricionista, int page, int size, EEstadoPaciente? estado);
+        Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(int page, int size, EEstadoPaciente? estado);
 
         Task CambiarEstado(int idPaciente, EEstadoPaciente nuevoEstado);
 }

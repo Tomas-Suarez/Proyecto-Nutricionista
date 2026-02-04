@@ -10,7 +10,6 @@ using static backend.Enum.ERol;
 
 namespace backend.Controller;
 
-[Authorize(Roles = nameof(Nutricionista))]
 [Route("api/[controller]")]
 [ApiController]
 public class PacienteController : ControllerBase
@@ -22,51 +21,55 @@ public class PacienteController : ControllerBase
         _pacienteService = pacienteService;
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
     [HttpPost]
     public async Task<ActionResult<PacienteResponseDTO>> Registrar([FromBody] RegistroPacienteDTO dto)
     {
         var resultado = await _pacienteService.RegistrarPaciente(dto);
 
-        return CreatedAtAction( nameof(ObtenerPorId), new { idPaciente = resultado.Id_Paciente }, resultado);
+        return Created(string.Empty, resultado);
     }
 
-    [HttpGet("{idPaciente}")]
-    public async Task<ActionResult<PacienteResponseDTO>> ObtenerPorId(int idPaciente)
+    [Authorize(Roles = nameof(Paciente))]
+    [HttpGet("me")]
+    public async Task<ActionResult<PacienteResponseDTO>> ObtenerMiPerfil()
     {
-        var resultado = await _pacienteService.ObtenerPacientePorId(idPaciente);
-
+        var resultado = await _pacienteService.ObtenerMiPerfil();
         return Ok(resultado);
     }
 
-    [HttpGet("usuario/{idUsuario}")]
-    public async Task<ActionResult<PacienteResponseDTO>> ObtenerPorUsuarioId(int idUsuario)
+    [Authorize(Roles = nameof(Paciente))]
+    [HttpPut("me")]
+    public async Task<ActionResult<PacienteResponseDTO>> ModificarMiPerfil([FromBody] PacienteRequestDTO dto)
     {
-        var resultado = await _pacienteService.ObtenerPorUsuarioId(idUsuario);
-
+        var resultado = await _pacienteService.ModificarMiPerfil(dto);
         return Ok(resultado);
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
     [HttpPut("{idPaciente}")]
-    public async Task<ActionResult<PacienteResponseDTO>> Actualizar(int idPaciente, [FromBody] PacienteRequestDTO dto)
+    public async Task<ActionResult<PacienteResponseDTO>> ActualizarPaciente(int idPaciente, [FromBody] PacienteRequestDTO dto)
     {
         var resultado = await _pacienteService.ModificarPaciente(idPaciente, dto);
-
         return Ok(resultado);
     }
 
-    [HttpGet("nutricionista/{idNutricionista}")]
-    public async Task<ActionResult<PagedResponseDTO<PacienteResponseDTO>>> ListarPorNutricionista(
-    int idNutricionista,
-    [FromQuery] EEstadoPaciente? estado,
-    [FromQuery] int page = 1,
-    [FromQuery] int size = 10)
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
+    [HttpGet]
+    public async Task<ActionResult<PagedResponseDTO<PacienteResponseDTO>>> ListarMisPacientes(
+        [FromQuery] EEstadoPaciente? estado,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 10)
     {
-        var resultado = await _pacienteService.ObtenerPacientesPorNutricionista(idNutricionista, page, size, estado);
+        var resultado = await _pacienteService.ObtenerPacientesPorNutricionista(
+            page, size, estado);
+
         return Ok(resultado);
     }
 
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
     [HttpPatch("{idPaciente}/estado")]
-    public async Task<IActionResult> ActualizarEstado(int idPaciente, [FromBody] EEstadoPaciente nuevoEstado)
+    public async Task<IActionResult> CambiarEstado(int idPaciente, [FromBody] EEstadoPaciente nuevoEstado)
     {
         await _pacienteService.CambiarEstado(idPaciente, nuevoEstado);
         return NoContent();

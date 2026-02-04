@@ -34,9 +34,11 @@ public class PacienteService : IPacienteService
             throw new AccessDeniedException("Solo los nutricionistas pueden registrar pacientes.");
         }
 
-        var usuarioLogueadoId = _currentUserService.GetUserId();
+        var userId = _currentUserService.GetUserId()
+            ?? throw new UnauthenticatedException("Usuario no autenticado...");
+
         var nutricionista = await _context.Nutricionistas
-            .FirstOrDefaultAsync(n => n.Id_Usuario == usuarioLogueadoId)
+            .FirstOrDefaultAsync(n => n.Id_Usuario == userId)
             ?? throw new ResourceNotFoundException("No se encontró tu perfil de profesional.");
 
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -64,7 +66,7 @@ public class PacienteService : IPacienteService
         }
 
         var paciente = _pacienteMapper.Map<PacienteEntity>(dto);
-        
+
         paciente.Id_Usuario = idUsuario;
         paciente.Id_Nutricionista = nutricionista.Id_Nutricionista;
         paciente.Estado = EEstadoPaciente.Activo;
@@ -77,12 +79,45 @@ public class PacienteService : IPacienteService
         return await ObtenerPacienteConDetalles(paciente.Id_Paciente);
     }
 
-    public async Task<PacienteResponseDTO> ObtenerPorUsuarioId(int idUsuario)
+    public async Task<PacienteResponseDTO> ObtenerMiPerfil()
+    {
+        var userId = _currentUserService.GetUserId()
+            ?? throw new UnauthenticatedException("Usuario no autenticado...");
+
+        var paciente = await _context.Pacientes
+            .Include(p => p.Usuario)
+            .FirstOrDefaultAsync(p => p.Id_Usuario == userId)
+            ?? throw new ResourceNotFoundException("Perfil de paciente no encontrado.");
+
+        return _pacienteMapper.Map<PacienteResponseDTO>(paciente);
+    }
+
+    public async Task<PacienteResponseDTO> ModificarMiPerfil(PacienteRequestDTO dto)
+    {
+        var userId = _currentUserService.GetUserId()
+            ?? throw new UnauthenticatedException("Usuario no autenticado...");
+
+        var paciente = await _context.Pacientes
+            .FirstOrDefaultAsync(p => p.Id_Usuario == userId)
+            ?? throw new ResourceNotFoundException("Perfil de paciente no encontrado.");
+
+        _pacienteMapper.Map(dto, paciente);
+        await _context.SaveChangesAsync();
+
+        return _pacienteMapper.Map<PacienteResponseDTO>(paciente);
+    }
+
+    public async Task<PacienteResponseDTO> ModificarPaciente(int idPaciente, PacienteRequestDTO dto)
     {
         var paciente = await _context.Pacientes
             .Include(p => p.Usuario)
-            .FirstOrDefaultAsync(p => p.Id_Usuario == idUsuario)
-            ?? throw new ResourceNotFoundException("No se encontró el perfil de paciente para este usuario.");
+            .FirstOrDefaultAsync(p => p.Id_Paciente == idPaciente)
+            ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {idPaciente}");
+
+        ValidarAccesoPaciente(paciente);
+
+        _pacienteMapper.Map(dto, paciente);
+        await _context.SaveChangesAsync();
 
         return _pacienteMapper.Map<PacienteResponseDTO>(paciente);
     }
@@ -98,37 +133,29 @@ public class PacienteService : IPacienteService
             .FirstOrDefaultAsync(p => p.Id_Paciente == idPaciente)
             ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {idPaciente}");
 
+        ValidarAccesoPaciente(paciente);
+
         paciente.Estado = nuevoEstado;
 
         _context.Pacientes.Update(paciente);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<PacienteResponseDTO> ModificarPaciente(int IdPaciente, PacienteRequestDTO dto)
-    {
-        var pacienteExiste = await _context.Pacientes
-            .Include(p => p.Usuario)
-            .FirstOrDefaultAsync(p => p.Id_Paciente == IdPaciente)
-            ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {IdPaciente}");
-
-        _pacienteMapper.Map(dto, pacienteExiste);
-        _context.Pacientes.Update(pacienteExiste);
-        await _context.SaveChangesAsync();
-
-        return await ObtenerPacienteConDetalles(IdPaciente);
-    }
-
-    public async Task<PacienteResponseDTO> ObtenerPacientePorId(int idPaciente)
-    {
-        return await ObtenerPacienteConDetalles(idPaciente);
-    }
-
     public async Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(
-        int idNutricionista, int page, int size, EEstadoPaciente? estado)
+        int page, int size, EEstadoPaciente? estado)
     {
+
+        var userId = _currentUserService.GetUserId()
+            ?? throw new UnauthenticatedException("Usuario no autenticado...");
+
+        var nutricionistaId = await _context.Nutricionistas
+            .Where(n => n.Id_Usuario == userId)
+            .Select(n => n.Id_Nutricionista)
+            .FirstOrDefaultAsync();
+
         var query = _context.Pacientes
             .Include(p => p.Usuario)
-            .Where(p => p.Id_Nutricionista == idNutricionista);
+            .Where(p => p.Id_Nutricionista == nutricionistaId);
 
         if (estado.HasValue)
         {
@@ -160,5 +187,24 @@ public class PacienteService : IPacienteService
             ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {idPaciente}");
 
         return _pacienteMapper.Map<PacienteResponseDTO>(paciente);
+    }
+
+    private void ValidarAccesoPaciente(PacienteEntity paciente)
+    {
+        var userId = _currentUserService.GetUserId();
+        var isAdmin = _currentUserService.IsAdmin();
+
+        if (isAdmin)
+            return;
+
+        var nutricionistaId = _context.Nutricionistas
+            .Where(n => n.Id_Usuario == userId)
+            .Select(n => n.Id_Nutricionista)
+            .FirstOrDefault();
+
+        if (paciente.Id_Nutricionista != nutricionistaId)
+        {
+            throw new AccessDeniedException("No tienes permiso para operar sobre este paciente.");
+        }
     }
 }
