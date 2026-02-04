@@ -8,7 +8,7 @@ public interface IPesajeService
 {
     Task<PesajeResponseDTO> RegistrarPesaje(PesajeRequestDTO dto);
 
-    Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerHistorialPesaje(int idPaciente, int page, int size);
+    Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerMiHistorial(int page, int size);
 
     Task<PesajeResponseDTO> ObtenerPesajePorId(int idPesaje);
 

@@ -38,14 +38,13 @@ public class PesajeController : ControllerBase
         return Ok(pesaje);
     }
 
-    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
-    [HttpGet("paciente/{idPaciente}")]
-    public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerHistorial(
-        int idPaciente,
+    [Authorize(Roles = nameof(Paciente))]
+    [HttpGet("me")]
+    public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerMiHistorial(
         [FromQuery] int page = 1,
         [FromQuery] int size = 10)
     {
-        var historial = await _pesajeService.ObtenerHistorialPesaje(idPaciente, page, size);
+        var historial = await _pesajeService.ObtenerMiHistorial(page, size);
         return Ok(historial);
     }
 
