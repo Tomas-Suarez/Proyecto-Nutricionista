@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static backend.Enum.ERol;
 
-
 namespace backend.Controller;
 
-[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class NutricionistaController : ControllerBase
@@ -20,35 +18,29 @@ public class NutricionistaController : ControllerBase
         _nutricionistaService = nutricionistaService;
     }
 
+    [AllowAnonymous]
     [HttpPost]
     public async Task<ActionResult<NutricionistaResponseDTO>> Registrar([FromBody] RegistroNutricionistaDTO dto)
     {
         var resultado = await _nutricionistaService.RegistrarNutricionista(dto);
 
-        return CreatedAtAction(nameof(ObtenerPorId), new { id = resultado.Id_Nutricionista }, resultado);
+        return Created(string.Empty, resultado);
     }
 
-    [Authorize(Roles = $"{nameof(Admin)},{nameof(Nutricionista)},{nameof(Paciente)}")]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<NutricionistaResponseDTO>> ObtenerPorId(int id)
+    [Authorize(Roles = nameof(Nutricionista))]
+    [HttpGet("me")]
+    public async Task<ActionResult<NutricionistaResponseDTO>> ObtenerMiPerfil()
     {
-        var resultado = await _nutricionistaService.ObtenerNutricionistaPorId(id);
-        return Ok(resultado);
-    }
-
-    [Authorize(Roles = $"{nameof(Admin)},{nameof(Nutricionista)},{nameof(Paciente)}")]
-    [HttpGet("usuario/{usuarioId}")]
-    public async Task<ActionResult<NutricionistaResponseDTO>> ObtenerPorUsuarioId(int usuarioId)
-    {
-        var resultado = await _nutricionistaService.ObtenerPorUsuarioId(usuarioId);
+        var resultado = await _nutricionistaService.ObtenerMiPerfil();
         return Ok(resultado);
     }
 
     [Authorize(Roles = nameof(Nutricionista))]
-    [HttpPut("{id}")]
-    public async Task<ActionResult<NutricionistaResponseDTO>> Actualizar(int id, [FromBody] NutricionistaRequestDTO dto)
+    [HttpPut("me")]
+    public async Task<ActionResult<NutricionistaResponseDTO>> ModificarMiPerfil(
+        [FromBody] NutricionistaRequestDTO dto)
     {
-        var resultado = await _nutricionistaService.ModificarNutricionista(id, dto);
+        var resultado = await _nutricionistaService.ModificarMiPerfil(dto);
         return Ok(resultado);
     }
 }

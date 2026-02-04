@@ -15,8 +15,13 @@ public class CurrentUserService : ICurrentUserService
 
     public int? GetUserId()
     {
-        var id = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return id != null ? int.Parse(id) : null;
+        var userIdClaim = _httpContextAccessor.HttpContext?
+            .User?
+            .FindFirst(ClaimTypes.NameIdentifier);
+
+        return userIdClaim != null
+            ? int.Parse(userIdClaim.Value)
+            : null;
     }
 
     public string? GetUserRole()

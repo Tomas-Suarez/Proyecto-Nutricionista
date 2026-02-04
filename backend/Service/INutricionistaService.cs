@@ -7,9 +7,7 @@ public interface INutricionistaService
 {
         Task<NutricionistaResponseDTO> RegistrarNutricionista(RegistroNutricionistaDTO dto);
         
-        Task<NutricionistaResponseDTO> ObtenerNutricionistaPorId(int idNutricionista);
+        Task<NutricionistaResponseDTO> ObtenerMiPerfil();
 
-        Task<NutricionistaResponseDTO> ObtenerPorUsuarioId(int idUsuario);
-
-        Task<NutricionistaResponseDTO> ModificarNutricionista(int IdNutricionista, NutricionistaRequestDTO dto);
+        Task<NutricionistaResponseDTO> ModificarMiPerfil(NutricionistaRequestDTO dto);
 }
