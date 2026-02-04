@@ -3,7 +3,6 @@ using backend.Exceptions;
 using backend.Service;
 using static backend.Constants.AuthConstants;
 using Microsoft.AspNetCore.Mvc;
-using static backend.Enum.ERol;
 using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controller
@@ -28,7 +27,7 @@ namespace backend.Controller
 
             var resultado = await _usuarioService.RegistrarUsuario(dto);
 
-            return CreatedAtAction(nameof(ObtenerPorId), new { id = resultado.Id_Usuario }, resultado);
+            return Created(string.Empty, resultado);
 
         }
 
@@ -48,18 +47,17 @@ namespace backend.Controller
         [HttpGet("{id}")]
         public async Task<IActionResult> ObtenerPorId(int id)
         {
-
             var resultado = await _usuarioService.ObtenerUsuarioPorId(id);
             return Ok(resultado);
 
         }
 
         [Authorize]
-        [HttpPatch("cambiar-password/{id}")]
-        public async Task<IActionResult> CambiarPassword(int id, [FromBody] CambiarPasswordRequestDTO dto)
+        [HttpPatch("me/password")]
+        public async Task<IActionResult> CambiarPassword([FromBody] CambiarPasswordRequestDTO dto)
         {
 
-            await _usuarioService.CambiarPassword(id, dto);
+            await _usuarioService.CambiarMiPassword(dto);
 
             return Ok(new { mensaje = "Contraseña actualizada con éxito" });
 

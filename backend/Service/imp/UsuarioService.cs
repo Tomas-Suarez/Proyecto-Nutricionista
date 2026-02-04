@@ -96,19 +96,18 @@ namespace backend.Service.imp
 
         }
 
-        public async Task<UsuarioResponseDTO> CambiarPassword(int idUsuario, CambiarPasswordRequestDTO dto)
+        public async Task<UsuarioResponseDTO> CambiarMiPassword(CambiarPasswordRequestDTO dto)
         {
-
-            if (idUsuario != _currentUserService.GetUserId())
-            {
-                throw new AccessDeniedException("No puedes cambiar la contraseña de otra cuenta.");
-            }
+            var userId = _currentUserService.GetUserId()
+                ?? throw new UnauthenticatedException("Usuario no autenticado.");
 
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Id_Usuario == idUsuario)
-                ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {idUsuario}");
+                .FirstOrDefaultAsync(u => u.Id_Usuario == userId)
+                ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {userId}");
 
-            bool pwValida = BCrypt.Net.BCrypt.Verify(dto.PasswordActual, usuario.Password_Hash);
+            bool pwValida = BCrypt.Net.BCrypt.Verify(
+                dto.PasswordActual,
+                usuario.Password_Hash);
 
             if (!pwValida)
             {
@@ -117,16 +116,13 @@ namespace backend.Service.imp
 
             usuario.Password_Hash = BCrypt.Net.BCrypt.HashPassword(dto.PasswordNueva);
 
-            _context.Usuarios.Update(usuario);
             await _context.SaveChangesAsync();
 
             return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
-
         }
 
         public async Task<UsuarioResponseDTO> ObtenerUsuarioPorId(int idUsuario)
         {
-
             var idSolicitante = _currentUserService.GetUserId();
 
             if (!_currentUserService.IsAdmin() && idSolicitante != idUsuario)

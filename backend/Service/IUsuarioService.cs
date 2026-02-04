@@ -11,7 +11,7 @@ namespace backend.Service
         
         Task<LoginResponseDTO> RefrescarToken(string refreshTokenActual);
 
-        Task<UsuarioResponseDTO> CambiarPassword(int idUsuario, CambiarPasswordRequestDTO dto);
+        Task<UsuarioResponseDTO> CambiarMiPassword(CambiarPasswordRequestDTO dto);
         
         Task<UsuarioResponseDTO> ObtenerUsuarioPorId(int idUsuario);
 
