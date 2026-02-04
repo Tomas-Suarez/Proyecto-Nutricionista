@@ -17,5 +17,5 @@ public interface IDietaService
 
     Task<DietaResponseDTO?> ObtenerDietaActiva(int idPaciente);
 
-    Task ActivarDieta(int idDieta, int idPaciente); 
+    Task ActivarDieta(int idDieta); 
 }

@@ -4,6 +4,7 @@ using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Exceptions;
 using backend.Models;
+using backend.Service.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Service.imp;
@@ -12,21 +13,18 @@ public class DietaService : IDietaService
 {
     private readonly IMapper _mapper;
     private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public DietaService(IMapper mapper, AppDbContext context)
+    public DietaService(IMapper mapper, AppDbContext context, ICurrentUserService currentUserService)
     {
         _mapper = mapper;
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<DietaResponseDTO> CrearDieta(DietaRequestDTO dto)
     {
-        var paciente = await _context.Pacientes
-            .FirstOrDefaultAsync(p => p.Id_Paciente == dto.Id_Paciente)
-            ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {dto.Id_Paciente}");
-
-        _ = await _context.Nutricionistas.FindAsync(dto.Id_Nutricionista)
-            ?? throw new ResourceNotFoundException($"Nutricionista con ID {dto.Id_Nutricionista} no encontrado.");
+        var paciente = await ObtenerPacienteAutorizado(dto.Id_Paciente);
 
         var dietasActivasAnteriores = await _context.Dietas
             .Where(d => d.Id_Paciente == dto.Id_Paciente && d.Activa)
@@ -69,15 +67,21 @@ public class DietaService : IDietaService
                 .FirstOrDefaultAsync(d => d.Id_Dieta == idDieta)
                 ?? throw new ResourceNotFoundException($"No se encontró la dieta con id: {idDieta}");
 
+        await ValidarAccesoPaciente(dieta.Paciente);
+
         return _mapper.Map<DietaResponseDTO>(dieta);
     }
 
     public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO dto)
     {
         var dietaExistente = await _context.Dietas
+            .Include(d => d.Paciente)
             .Include(d => d.DietaComidas)
             .FirstOrDefaultAsync(d => d.Id_Dieta == idDieta)
             ?? throw new ResourceNotFoundException($"No se encontró la dieta con id: {idDieta}");
+
+        await ValidarAccesoPaciente(dietaExistente.Paciente);
+
 
         _mapper.Map(dto, dietaExistente);
 
@@ -101,26 +105,36 @@ public class DietaService : IDietaService
         return await ObtenerPorId(idDieta);
     }
 
-    public async Task ActivarDieta(int idDieta, int idPaciente)
+    public async Task ActivarDieta(int idDieta)
     {
-        var dietasPrevias = await _context.Dietas
-            .Where(d => d.Id_Paciente == idPaciente && d.Activa)
-            .ToListAsync();
-
-        foreach (var d in dietasPrevias) d.Activa = false;
-
-        var dietaAActivar = await _context.Dietas.FindAsync(idDieta)
+        var dieta = await _context.Dietas
+            .Include(d => d.Paciente)
+            .FirstOrDefaultAsync(d => d.Id_Dieta == idDieta)
             ?? throw new ResourceNotFoundException($"No se encontró la dieta con id: {idDieta}");
 
-        dietaAActivar.Activa = true;
+        await ValidarAccesoPaciente(dieta.Paciente);
+
+        var dietasPrevias = await _context.Dietas
+            .Where(d => d.Id_Paciente == dieta.Id_Paciente && d.Activa)
+            .ToListAsync();
+
+        foreach (var d in dietasPrevias)
+            d.Activa = false;
+
+        dieta.Activa = true;
 
         await _context.SaveChangesAsync();
     }
 
+
     public async Task EliminarDieta(int idDieta)
     {
-        var dieta = await _context.Dietas.FindAsync(idDieta)
+        var dieta = await _context.Dietas
+            .Include(d => d.Paciente)
+            .FirstOrDefaultAsync(d => d.Id_Dieta == idDieta)
             ?? throw new ResourceNotFoundException($"No se encontró la dieta con id: {idDieta}");
+
+        await ValidarAccesoPaciente(dieta.Paciente);
 
         _context.Dietas.Remove(dieta);
         await _context.SaveChangesAsync();
@@ -128,6 +142,8 @@ public class DietaService : IDietaService
 
     public async Task<DietaResponseDTO?> ObtenerDietaActiva(int idPaciente)
     {
+        var paciente = await ObtenerPacienteAutorizado(idPaciente);
+
         var dietaActiva = await _context.Dietas
             .Include(d => d.Paciente)
             .Include(d => d.DietaComidas)
@@ -139,6 +155,8 @@ public class DietaService : IDietaService
 
     public async Task<IEnumerable<DietaResponseDTO>> ObtenerHistorialPaciente(int idPaciente)
     {
+        var paciente = await ObtenerPacienteAutorizado(idPaciente);
+
         var historial = await _context.Dietas
             .Include(d => d.Paciente)
             .Include(d => d.DietaComidas)
@@ -148,5 +166,42 @@ public class DietaService : IDietaService
             .ToListAsync();
 
         return _mapper.Map<IEnumerable<DietaResponseDTO>>(historial);
+    }
+
+    private async Task<PacienteEntity> ObtenerPacienteAutorizado(int idPaciente)
+    {
+        var userId = _currentUserService.GetUserId()
+            ?? throw new UnauthenticatedException("Usuario no autenticado.");
+
+        if (_currentUserService.IsAdmin())
+        {
+            return await _context.Pacientes.FindAsync(idPaciente)
+            ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {idPaciente}");
+        }
+
+        if (_currentUserService.IsNutricionista())
+        {
+            var nutricionistaId = await _context.Nutricionistas
+                .Where(n => n.Id_Usuario == userId)
+                .Select(n => n.Id_Nutricionista)
+                .FirstOrDefaultAsync();
+
+            return await _context.Pacientes
+                .FirstOrDefaultAsync(p =>
+                    p.Id_Paciente == idPaciente &&
+                    p.Id_Nutricionista == nutricionistaId)
+                ?? throw new AccessDeniedException("Paciente no autorizado.");
+        }
+
+        return await _context.Pacientes
+            .FirstOrDefaultAsync(p =>
+                p.Id_Paciente == idPaciente &&
+                p.Id_Usuario == userId)
+            ?? throw new AccessDeniedException("Paciente no autorizado.");
+    }
+
+    private async Task ValidarAccesoPaciente(PacienteEntity paciente)
+    {
+        await ObtenerPacienteAutorizado(paciente.Id_Paciente);
     }
 }

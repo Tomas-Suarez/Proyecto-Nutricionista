@@ -70,9 +70,9 @@ public class DietaController : ControllerBase
 
     [Authorize(Roles = nameof(Nutricionista))]
     [HttpPatch("{id}/activar/{idPaciente}")]
-    public async Task<IActionResult> ActivarDieta(int id, int idPaciente)
+    public async Task<IActionResult> ActivarDieta(int id)
     {
-        await _dietaService.ActivarDieta(id, idPaciente);
+        await _dietaService.ActivarDieta(id);
         return Ok(new { message = "Dieta activada correctamente." });
     }
 }
