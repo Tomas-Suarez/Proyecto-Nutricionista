@@ -9,3 +9,4 @@ appsettings.Development.json
 .vs/ProjectEvaluation/proyecto-nutricionista.projects.v9.bin
 *.bin
 /.vs
+frontend/.env
