@@ -1,4 +1,4 @@
-export interface PacienteRequest {
+export interface PacienteRequestDTO {
     Id_Usuario: number;
     Nombre: string;
     Apellido: string;
