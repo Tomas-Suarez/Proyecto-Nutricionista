@@ -1,4 +1,4 @@
-import { DietaComidaResponseDTO } from './DietaComidaResponseDTO';
+import type { DietaComidaResponseDTO } from './DietaComidaResponseDTO';
 
 export interface DietaResponseDTO {
     id_Dieta: number;

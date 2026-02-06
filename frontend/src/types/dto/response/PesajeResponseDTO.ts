@@ -1,5 +1,3 @@
-// src/types/dto/pesaje/PesajeResponseDTO.ts
-
 export interface PesajeResponseDTO {
     id_Pesaje: number;
     id_Paciente: number;

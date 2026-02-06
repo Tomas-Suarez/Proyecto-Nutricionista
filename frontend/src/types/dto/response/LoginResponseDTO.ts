@@ -1,4 +1,4 @@
-import { UsuarioResponseDTO } from './UsuarioResponseDTO';
+import type { UsuarioResponseDTO } from './UsuarioResponseDTO';
 
 export interface LoginResponseDTO {
     usuario: UsuarioResponseDTO;
