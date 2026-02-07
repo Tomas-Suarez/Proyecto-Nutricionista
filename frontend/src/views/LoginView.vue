@@ -1,9 +1,11 @@
 <template>
-  <div class="flex justify-center items-center min-h-screen bg-surface-100 dark:bg-surface-900 p-4">
+  <div class="d-flex justify-content-center align-items-center min-vh-100 w-100 login-bg">
+    
     <LoginForm 
       :loading="loading" 
       @submit="handleLogin" 
     />
+
   </div>
 </template>
 
@@ -30,3 +32,9 @@ const handleLogin = async (credenciales: UsuarioRequestDTO) => {
   }
 };
 </script>
+
+<style scoped>
+.login-bg {
+    background-color: var(--surface-ground, #121212); 
+}
+</style>

@@ -1,10 +1,9 @@
 <template>
-  <Card class="w-full max-w-lg shadow-xl">
+  <Card class="shadow border-0" style="width: 100%; max-width: 450px;">
     <template #title>
-      <h2 class="text-3xl font-bold text-center mb-6 text-surface-900 dark:text-surface-0">
-        Nutri App
-      </h2>
+      <h2 class="text-center fw-bold mb-4">Nutri App</h2>
     </template>
+    
     <template #content>
       <Form 
         v-slot="$form"
@@ -12,46 +11,41 @@
         :initialValues="initialValues"
         @submit="onFormSubmit"
       >
-        <div class="flex flex-col gap-10">
-            
-            <div class="flex flex-col gap-2">
-                <label for="email" class="font-semibold text-lg ml-1"></label>
-                <InputText 
-                    name="email" 
-                    type="text" 
-                    placeholder="usuario@correo.com" 
-                    fluid 
-                    class="p-3" 
-                />
-                <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.email.error.message }}
-                </Message>
-            </div>
-
-            <div class="flex flex-col gap-2">
-                <label for="password" class="font-semibold text-lg ml-1"></label>
-                <Password 
-                    name="password" 
-                    :feedback="false" 
-                    toggleMask 
-                    fluid 
-                    placeholder="••••••••"
-                    inputClass="p-3 w-full" 
-                />
-                <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.password.error.message }}
-                </Message>
-            </div>
-
-            <Button 
-                type="submit" 
-                label="Iniciar Sesión" 
-                icon="pi pi-sign-in" 
-                :loading="loading" 
-                severity="secondary" 
-                class="mt-2 p-3 text-lg font-bold" 
+        <div class="mb-3">
+            <label for="email" class="form-label fw-bold ms-1">Email</label>
+            <InputText 
+                name="email" 
+                type="text" 
+                placeholder="usuario@correo.com" 
+                fluid 
             />
+            <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">
+                {{ $form.email.error.message }}
+            </Message>
         </div>
+
+        <div class="mb-4">
+            <label for="password" class="form-label fw-bold ms-1">Contraseña</label>
+            <Password 
+                name="password" 
+                :feedback="false" 
+                toggleMask 
+                fluid 
+                placeholder="••••••••"
+            />
+            <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">
+                {{ $form.password.error.message }}
+            </Message>
+        </div>
+
+        <Button 
+            type="submit" 
+            label="Iniciar Sesión" 
+            icon="pi pi-sign-in" 
+            :loading="loading" 
+            severity="secondary" 
+            class="w-100 fw-bold py-2"
+        />
       </Form>
     </template>
   </Card>
@@ -81,8 +75,6 @@ const resolver = zodResolver(
 );
 
 const onFormSubmit = (e: FormSubmitEvent) => {
-    if (e.valid) {
-        emit('submit', e.values);
-    }
+    if (e.valid) emit('submit', e.values);
 };
 </script>

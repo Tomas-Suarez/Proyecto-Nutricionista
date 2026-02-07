@@ -7,33 +7,34 @@ import router from '../router';
 
 export const useAuthStore = defineStore('auth', () => {
   const usuario = ref<UsuarioResponseDTO | null>(null);
+  
   const cargando = ref(true);
 
   const estaAutenticado = computed(() => !!usuario.value);
   const rolUsuario = computed(() => usuario.value?.Rol);
 
-async function login(credenciales: UsuarioRequestDTO) {
+  async function login(credenciales: UsuarioRequestDTO) {
+    cargando.value = true;
     try {
       const data = await UsuarioService.login(credenciales);
-      
-      const { token, refreshToken, ...datosUsuario } = data;
-      
-      usuario.value = datosUsuario as UsuarioResponseDTO; 
-      
+      usuario.value = data;
       return usuario.value;
     } catch (error) {
-      limpiarEstado();
+      usuario.value = null;
       throw error;
+    } finally {
+      cargando.value = false;
     }
-}
+  }
 
   async function verificarSesion() {
     cargando.value = true;
     try {
+
       const data = await UsuarioService.refrescarToken();
-      usuario.value = data;
+      usuario.value = data; 
     } catch (error) {
-      limpiarEstado();
+      usuario.value = null;
     } finally {
       cargando.value = false;
     }
@@ -43,15 +44,11 @@ async function login(credenciales: UsuarioRequestDTO) {
     try {
       await UsuarioService.logout(); 
     } catch (error) {
-      console.error("Error al cerrar sesión en servidor", error);
+      console.error("Error logout", error);
     } finally {
-      limpiarEstado();
+      usuario.value = null;
       router.push('/login');
     }
-  }
-
-  function limpiarEstado() {
-    usuario.value = null;
   }
 
   return {
@@ -61,7 +58,6 @@ async function login(credenciales: UsuarioRequestDTO) {
     rolUsuario,
     login,
     verificarSesion,
-    limpiarEstado,
     logout
   };
 });

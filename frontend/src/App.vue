@@ -8,6 +8,7 @@
 <style>
 body {
   margin: 0;
-  font-family: var(--p-font-family);
+  padding: 0;
+  font-family: var(--font-family);
 }
 </style>
