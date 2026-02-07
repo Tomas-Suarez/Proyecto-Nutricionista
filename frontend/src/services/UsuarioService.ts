@@ -37,4 +37,8 @@ export const UsuarioService = {
     );
     return response.data;
   },
+
+  async logout(): Promise<void> {
+    await apiClient.post(ApiRoutes.Usuario.Logout);
+  },
 };

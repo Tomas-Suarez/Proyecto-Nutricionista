@@ -1,5 +1,5 @@
 export abstract class ApiRoutes {
-  public static readonly BASE_URL = import.meta.env.API_BASE_URL;
+  public static readonly BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   public static readonly Usuario = {
     Registrar: `/Usuario`,
