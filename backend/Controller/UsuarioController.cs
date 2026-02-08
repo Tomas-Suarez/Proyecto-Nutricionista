@@ -82,6 +82,47 @@ namespace backend.Controller
         }
 
         [Authorize]
+        [HttpPost("avatar")]
+        public async Task<IActionResult> SubirAvatar(IFormFile archivo)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "Id" || c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+            {
+                throw new UnauthenticatedException("Token inválido.");
+
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            var resultado = await _usuarioService.SubirAvatar(userId, archivo);
+
+            return Ok(new { url = resultado.AvatarUrl });
+        }
+
+        [Authorize]
+        [HttpDelete("avatar")]
+        public async Task<IActionResult> BorrarAvatar()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "Id" || c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+            {
+                throw new UnauthenticatedException("Token inválido.");
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            var resultado = await _usuarioService.BorrarAvatar(userId);
+
+            return Ok(new
+            {
+                mensaje = "Avatar eliminado correctamente",
+                url = resultado.AvatarUrl
+            });
+        }
+
+        [Authorize]
         [HttpPost("logout")]
         public IActionResult Logout()
         {

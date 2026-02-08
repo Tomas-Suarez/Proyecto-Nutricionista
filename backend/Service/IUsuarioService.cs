@@ -15,5 +15,8 @@ namespace backend.Service
         
         Task<UsuarioResponseDTO> ObtenerUsuarioPorId(int idUsuario);
 
+        Task<UsuarioResponseDTO> SubirAvatar(int idUsuario, IFormFile archivo);
+
+        Task<UsuarioResponseDTO> BorrarAvatar(int idUsuario);
     }
 }

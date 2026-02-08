@@ -7,6 +7,7 @@ using backend.Models;
 using backend.Exceptions;
 using backend.Jwt;
 using backend.Service.Common;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace backend.Service.imp
 {
@@ -16,12 +17,16 @@ namespace backend.Service.imp
         private readonly IMapper _usuarioMapper;
         private readonly JwtTokenGenerator _jwtGenerator;
         private readonly ICurrentUserService _currentUserService;
-        public UsuarioService(AppDbContext context, IMapper usuarioMapper, JwtTokenGenerator jwtGenerator, ICurrentUserService currentUserService)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        private const string DEFAULT_AVATAR_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSul0lklnuStig202SiXNvYYD_OUvmFw9KaPA&s";
+        public UsuarioService(AppDbContext context, IMapper usuarioMapper, JwtTokenGenerator jwtGenerator, ICurrentUserService currentUserService, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _usuarioMapper = usuarioMapper;
             _jwtGenerator = jwtGenerator;
             _currentUserService = currentUserService;
+            _webHostEnvironment = webHostEnvironment;
         }
         public async Task<UsuarioResponseDTO> RegistrarUsuario(UsuarioRequestDTO dto)
         {
@@ -35,7 +40,7 @@ namespace backend.Service.imp
 
             usuarioEntity.Password_Hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            usuarioEntity.Avatar_Url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSul0lklnuStig202SiXNvYYD_OUvmFw9KaPA&s";
+            usuarioEntity.Avatar_Url = DEFAULT_AVATAR_URL;
 
             _context.Usuarios.Add(usuarioEntity);
             await _context.SaveChangesAsync();
@@ -135,6 +140,100 @@ namespace backend.Service.imp
                 ?? throw new ResourceNotFoundException($"No se encontró el usuario con el id: {idUsuario}");
 
             return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
+        }
+
+        public async Task<UsuarioResponseDTO> SubirAvatar(int idUsuario, IFormFile archivo)
+        {
+            if (archivo == null || archivo.Length == 0)
+            {
+                throw new BadRequestException("No se ha enviado archivo.");
+            }
+
+            var extension = Path.GetExtension(archivo.FileName).ToLower();
+            string[] permitidas = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            if (!permitidas.Contains(extension))
+            {
+                throw new BadRequestException("Formato no válido.");
+            }
+
+            var usuario = await _context.Usuarios.FindAsync(idUsuario)
+                 ?? throw new ResourceNotFoundException($"Usuario no encontrado");
+
+            if (usuario.Avatar_Url != DEFAULT_AVATAR_URL)
+            {
+                EliminarArchivoFisico(usuario.Avatar_Url!);
+            }
+
+            string carpetaNombre = Path.Combine("uploads", "avatars");
+            string rutaRaiz = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            string rutaFisica = Path.Combine(rutaRaiz, carpetaNombre);
+
+            if (!Directory.Exists(rutaFisica))
+            {
+                Directory.CreateDirectory(rutaFisica);
+            }
+
+
+            string nombreArchivo = $"avatar_{idUsuario}_{Guid.NewGuid()}{extension}";
+            string rutaCompleta = Path.Combine(rutaFisica, nombreArchivo);
+
+            using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+            {
+                await archivo.CopyToAsync(stream);
+            }
+
+            usuario.Avatar_Url = $"/{carpetaNombre.Replace("\\", "/")}/{nombreArchivo}";
+            await _context.SaveChangesAsync();
+
+            return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
+        }
+
+        public async Task<UsuarioResponseDTO> BorrarAvatar(int idUsuario)
+        {
+            var usuario = await _context.Usuarios.FindAsync(idUsuario)
+                 ?? throw new ResourceNotFoundException($"Usuario no encontrado");
+
+            if (usuario.Avatar_Url == DEFAULT_AVATAR_URL)
+            {
+                return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
+            }
+
+            EliminarArchivoFisico(usuario.Avatar_Url!);
+
+            usuario.Avatar_Url = DEFAULT_AVATAR_URL;
+
+            await _context.SaveChangesAsync();
+
+            return _usuarioMapper.Map<UsuarioResponseDTO>(usuario);
+        }
+
+        private void EliminarArchivoFisico(string urlRelativa)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(urlRelativa) || urlRelativa == DEFAULT_AVATAR_URL)
+                {
+                    return;
+                }
+
+                if (!urlRelativa.StartsWith("/"))
+                {
+                    return;
+                }
+
+                string webRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                string pathRelativo = urlRelativa.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString());
+                string pathCompleto = Path.Combine(webRootPath, pathRelativo);
+
+                if (File.Exists(pathCompleto))
+                {
+                    File.Delete(pathCompleto);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error borrando imagen: {ex.Message}");
+            }
         }
     }
 }

@@ -17,7 +17,8 @@ namespace backend.Mapping
 
             CreateMap<UsuarioEntity, UsuarioResponseDTO>()
                 .ForMember(dest => dest.Id_Usuario, opt => opt.MapFrom(src => src.Id_Usuario))
-                .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => System.Enum.Parse<ERol>(src.Rol)));
+                .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => System.Enum.Parse<ERol>(src.Rol)))
+                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Avatar_Url));
         }
     }
 }
