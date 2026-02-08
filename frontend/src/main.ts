@@ -4,6 +4,7 @@ import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import App from './App.vue';
 import router from './router/index';
+import ConfirmationService from 'primevue/confirmationservice';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap'; 
@@ -19,5 +20,7 @@ app.use(PrimeVue, {
         preset: Aura
     }
 });
+
+app.use(ConfirmationService);
 
 app.mount('#app');

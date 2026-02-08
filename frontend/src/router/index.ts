@@ -12,14 +12,15 @@ const router = createRouter({
       component: LoginView,
       meta: { requiresAuth: false }
     },
+    
     {
-      path: '/',
+      path: '/app', 
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
         {
           path: '', 
-          redirect: '/dashboard'
+          redirect: { name: 'dashboard' }
         },
         {
           path: 'dashboard',
@@ -35,27 +36,36 @@ const router = createRouter({
           path: 'dietas',
           name: 'dietas',
           component: () => import('../views/DashboardView.vue')
-        }
+        },
+        { 
+          path: 'configuracion',
+          name: 'configuracion',
+          component: () => import('../views/ConfiguracionView.vue') 
+        },
       ]
     },
+
+    {
+      path: '/',
+      redirect: '/app/dashboard'
+    },
+    
     {
       path: '/:pathMatch(.*)*',
-      redirect: '/'
+      redirect: '/app/dashboard'
     }
   ]
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
-  
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
   if (requiresAuth) {
     if (!authStore.estaAutenticado) {
       try {
         await authStore.verificarSesion();
-      } catch (error) {
-      }
+      } catch (error) {}
     }
 
     if (authStore.estaAutenticado) {
@@ -66,7 +76,7 @@ router.beforeEach(async (to, from, next) => {
   } 
   else {    
     if (to.path === '/login' && authStore.estaAutenticado) {
-      next('/dashboard');
+      next('/app/dashboard'); 
     } else {
       next();
     }

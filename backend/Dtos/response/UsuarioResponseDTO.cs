@@ -6,8 +6,5 @@ namespace backend.Dtos.response
         int Id_Usuario,
         string Email,
         ERol Rol
-
-    // TODO: quedara para el final
-    //string? AvatarUrl
     );
 }
