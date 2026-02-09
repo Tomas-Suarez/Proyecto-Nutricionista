@@ -41,4 +41,27 @@ export const UsuarioService = {
   async logout(): Promise<void> {
     await apiClient.post(ApiRoutes.Usuario.Logout);
   },
+
+  async subirAvatar(archivo: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("archivo", archivo);
+
+    const response = await apiClient.post<{ url: string }>(
+      ApiRoutes.Usuario.SubirAvatar,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response.data;
+  },
+
+  async borrarAvatar(): Promise<{ mensaje: string; url: string }> {
+    const response = await apiClient.delete<{ mensaje: string; url: string }>(
+      ApiRoutes.Usuario.BorrarAvatar,
+    );
+    return response.data;
+  },
 };

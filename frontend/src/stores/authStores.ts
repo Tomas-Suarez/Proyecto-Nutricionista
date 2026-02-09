@@ -77,12 +77,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function actualizarPerfilLocal(nuevosDatos: any) {
+function actualizarPerfilLocal(nuevosDatos: any) {
     if (perfil.value) {
       const perfilActualizado = { ...perfil.value, ...nuevosDatos };
-      
       perfil.value = perfilActualizado;
       localStorage.setItem('nutri_perfil', JSON.stringify(perfilActualizado));
+    }
+
+    if (usuario.value && nuevosDatos.AvatarUrl !== undefined) {
+        usuario.value = { 
+            ...usuario.value, 
+            AvatarUrl: nuevosDatos.AvatarUrl 
+        };
     }
   }
 

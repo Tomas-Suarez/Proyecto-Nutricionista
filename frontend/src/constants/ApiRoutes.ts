@@ -8,6 +8,8 @@ export abstract class ApiRoutes {
     CambiarPassword: `/Usuario/me/password`,
     Refresh: `/Usuario/refresh`,
     Logout: `/Usuario/logout`,
+    SubirAvatar: `/Usuario/avatar`, //POST
+    BorrarAvatar: `/Usuario/avatar`, //DELETE
   };
 
   public static readonly Paciente = {

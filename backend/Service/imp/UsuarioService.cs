@@ -19,7 +19,7 @@ namespace backend.Service.imp
         private readonly ICurrentUserService _currentUserService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        private const string DEFAULT_AVATAR_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSul0lklnuStig202SiXNvYYD_OUvmFw9KaPA&s";
+        private const string DEFAULT_AVATAR_URL = "/uploads/avatars/default-user.png";
         public UsuarioService(AppDbContext context, IMapper usuarioMapper, JwtTokenGenerator jwtGenerator, ICurrentUserService currentUserService, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;

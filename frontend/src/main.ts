@@ -5,6 +5,7 @@ import Aura from '@primevue/themes/aura';
 import App from './App.vue';
 import router from './router/index';
 import ConfirmationService from 'primevue/confirmationservice';
+import ToastService from 'primevue/toastservice';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap'; 
@@ -21,6 +22,7 @@ app.use(PrimeVue, {
     }
 });
 
+app.use(ToastService);;
 app.use(ConfirmationService);
 
 app.mount('#app');

@@ -10,3 +10,5 @@ appsettings.Development.json
 *.bin
 /.vs
 frontend/.env
+backend/wwwroot/uploads/avatars/default-user.png
+/backend/wwwroot

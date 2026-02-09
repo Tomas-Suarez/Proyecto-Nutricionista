@@ -37,8 +37,18 @@
           
           <div class="profile d-flex align-items-center p-2 rounded bg-profile">
             <div class="profile_details d-flex align-items-center">
-                <div class="user-avatar rounded d-flex justify-content-center align-items-center fw-bold">
-                    {{ authStore.iniciales }}
+                
+                <div class="user-avatar rounded d-flex justify-content-center align-items-center fw-bold overflow-hidden position-relative">
+                    <img 
+                        v-if="avatarSrc" 
+                        :src="avatarSrc" 
+                        alt="Perfil" 
+                        class="w-100 h-100 object-fit-cover"
+                        style="object-fit: cover;"
+                    />
+                    <span v-else>
+                        {{ authStore.iniciales }}
+                    </span>
                 </div>
                 
                 <div class="name_job ms-3">
@@ -92,6 +102,21 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const isCollapsed = ref(false);
+
+const backendUrl = import.meta.env.VITE_IMG_BASE_URL;
+
+const avatarSrc = computed(() => {
+
+    console.log(backendUrl);
+    const path = authStore.usuario?.AvatarUrl;
+    
+    if (!path) return null;
+    
+    if (path.startsWith('http')) return path; 
+    
+
+    return `${backendUrl}/${path.replace(/^\//, '')}`;
+});
 
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const toggleTheme = () => {
@@ -225,6 +250,8 @@ body {
     font-weight: bold;
     background-color: var(--accent-color); 
     color: #fff; 
+    overflow: hidden; 
+    position: relative;
 }
 
 .card { background-color: var(--card-bg) !important; border: 1px solid var(--border-color) !important; color: var(--text-primary) !important; transition: background-color 0.3s; }

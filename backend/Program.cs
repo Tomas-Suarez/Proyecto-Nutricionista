@@ -15,6 +15,8 @@ using backend.Service.Common.imp;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
@@ -75,7 +77,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins!)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -109,6 +111,9 @@ app.UseHttpsRedirection();
 
 
 app.UseCors("FrontendPolicy");
+
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

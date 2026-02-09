@@ -2,10 +2,11 @@
 
 namespace backend.Dtos.response
 {
-    public record UsuarioResponseDTO(
-        int Id_Usuario,
-        string Email,
-        ERol Rol,
-        string? AvatarUrl
-    );
+    public record UsuarioResponseDTO
+    {
+        public int Id_Usuario { get; init; }
+        public required string Email { get; init; }
+        public ERol Rol { get; init; }
+        public string? AvatarUrl { get; init; }
+    }
 }
