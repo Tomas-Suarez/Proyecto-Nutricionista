@@ -22,6 +22,11 @@ public class PacienteEntity
     [ForeignKey("Id_Nutricionista")]
     public virtual NutricionistaEntity? Nutricionista { get; set; }
 
+    public int? Id_Objetivo { get; set; } 
+
+    [ForeignKey("Id_Objetivo")]
+    public virtual ObjetivoEntity? Objetivo { get; set; }
+
     [Required]
     [StringLength(100)]
     public string Nombre { get; set; } = string.Empty;
@@ -46,8 +51,11 @@ public class PacienteEntity
     public decimal Peso_Inicial { get; set; }
 
     [Required]
+    [Column(TypeName = "decimal(5,2)")]
     public decimal Altura_Cm { get; set; }
 
     public EEstadoPaciente Estado { get; set; } = EEstadoPaciente.Activo;
+
+    public virtual ICollection<PatologiaPacienteEntity> PatologiaPacientes { get; set; } = new List<PatologiaPacienteEntity>();
 
 }

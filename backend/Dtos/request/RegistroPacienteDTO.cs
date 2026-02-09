@@ -33,5 +33,9 @@ public record RegistroPacienteDTO(
 
     [Required(ErrorMessage = "La altura es obligatoria.")]
     [Range(30, 300, ErrorMessage = "La altura debe estar entre 30 y 300 cm.")]
-    decimal Altura_Cm
+    decimal Altura_Cm,
+    int? IdObjetivo,
+
+    List<int>? IdsPatologias
+    
 );
