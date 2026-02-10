@@ -46,6 +46,14 @@
             severity="secondary" 
             class="w-100 fw-bold py-2"
         />
+
+        <div class="text-center mt-3">
+            <span class="text-muted">¿No tienes cuenta? </span>
+            <router-link to="/registro" class="text-decoration-none fw-bold" style="color: var(--p-primary-color);">
+                Regístrate aquí
+            </router-link>
+        </div>
+        
       </Form>
     </template>
   </Card>

@@ -102,6 +102,23 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Ocurrió un error al migrar la base de datos.");
     }
 }
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate();
+
+        await DbSeeder.Seed(services); 
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al iniciar la DB (Migraciones o Seeder).");
+    }
+}
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
