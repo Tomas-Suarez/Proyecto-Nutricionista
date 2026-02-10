@@ -67,6 +67,8 @@ builder.Services.AddScoped<IDietaService, DietaService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IPatologiaService, PatologiaService>();
+builder.Services.AddScoped<IObjetivoService, ObjetivoService>();
 
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(UsuarioProfile).Assembly);
