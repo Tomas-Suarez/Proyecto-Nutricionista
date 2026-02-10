@@ -18,6 +18,9 @@ namespace backend.Data
         public DbSet<ComidaEntity> Comidas { get; set; }
         public DbSet<CategoriaComidaEntity> CategoriaComidas { get; set; }
         public DbSet<CategoriaEntity> Categorias { get; set; }
+        public DbSet<ObjetivoEntity> Objetivos { get; set; }
+        public DbSet<PatologiaEntity> Patologias { get; set; }
+        public DbSet<PatologiaPacienteEntity> PatologiaPacientes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,11 +51,8 @@ namespace backend.Data
                       .WithMany()
                       .HasForeignKey(dc => dc.Id_Comida);
 
-                entity.Property(dc => dc.Cantidad)
-                      .HasPrecision(10, 2);
-                
-                entity.Property(dc => dc.Horario)
-                      .HasConversion<string>();
+                entity.Property(dc => dc.Cantidad).HasPrecision(10, 2);
+                entity.Property(dc => dc.Horario).HasConversion<string>();
             });
 
             modelBuilder.Entity<ComidaEntity>(entity =>
@@ -61,6 +61,26 @@ namespace backend.Data
                 entity.Property(c => c.Carbohidratos).HasPrecision(10, 2);
                 entity.Property(c => c.Grasas).HasPrecision(10, 2);
             });
+
+
+            modelBuilder.Entity<PatologiaPacienteEntity>(entity =>
+            {
+                entity.ToTable("Patologia_Paciente");
+                
+                entity.HasKey(pp => new { pp.Id_Paciente, pp.Id_Patologia });
+
+                entity.HasOne(pp => pp.Paciente)
+                      .WithMany(p => p.PatologiaPacientes)
+                      .HasForeignKey(pp => pp.Id_Paciente);
+
+                entity.HasOne(pp => pp.Patologia)
+                      .WithMany()
+                      .HasForeignKey(pp => pp.Id_Patologia);
+            });
+
+            // B. Tablas Simples (Opcional, para asegurar nombres de tabla)
+            modelBuilder.Entity<ObjetivoEntity>().ToTable("Objetivo");
+            modelBuilder.Entity<PatologiaEntity>().ToTable("Patologia");
         }
     }
 }
