@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { NutricionistaService } from '../../services/NutricionistaService';
-import { UsuarioService } from '../../services/UsuarioService'; 
+import { UsuarioService } from '../../services/UsuarioService';
 import { useConfirm } from "primevue/useconfirm";
 import { useAuthStore } from '../../stores/authStores';
 import { useToast } from "primevue/usetoast";
@@ -14,6 +14,8 @@ const cargando = ref(false);
 const subiendoFoto = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
+const esAdmin = computed(() => authStore.rolUsuario?.toString() === 'Admin');
+
 const emailMostrar = ref(authStore.usuario?.Email || '');
 
 const form = ref({
@@ -25,13 +27,13 @@ const form = ref({
 
 const avatarUrl = computed(() => {
     const url = authStore.usuario?.AvatarUrl;
-    
+
     if (!url) return '';
 
     if (url.startsWith('http')) return url;
 
     const ulrImg = `${import.meta.env.VITE_IMG_BASE_URL}${url}`;
-    return ulrImg; 
+    return ulrImg;
 });
 
 const esImagenDefault = computed(() => {
@@ -40,16 +42,23 @@ const esImagenDefault = computed(() => {
 });
 
 onMounted(async () => {
-    cargando.value = true;
-    try {
-        const perfilNutri = await NutricionistaService.obtenerMiPerfil();
-        
-        Object.assign(form.value, perfilNutri);
-        
+    if (esAdmin.value) {
         if (authStore.usuario?.Email) {
             emailMostrar.value = authStore.usuario.Email;
         }
-        
+        return;
+    }
+
+    cargando.value = true;
+    try {
+        const perfilNutri = await NutricionistaService.obtenerMiPerfil();
+
+        Object.assign(form.value, perfilNutri);
+
+        if (authStore.usuario?.Email) {
+            emailMostrar.value = authStore.usuario.Email;
+        }
+
     } catch (error) {
         console.error("Error al cargar perfil:", error);
         toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar la información', life: 3000 });
@@ -87,9 +96,9 @@ const alSeleccionarArchivo = async (event: Event) => {
 
     try {
         const res = await UsuarioService.subirAvatar(archivo!);
-        
+
         authStore.actualizarPerfilLocal({ AvatarUrl: res.url });
-        
+
         toast.add({ severity: 'success', summary: 'Éxito', detail: 'Foto de perfil actualizada', life: 3000 });
 
     } catch (error) {
@@ -110,9 +119,9 @@ const borrarFoto = () => {
         accept: async () => {
             try {
                 const res = await UsuarioService.borrarAvatar();
-                
+
                 authStore.actualizarPerfilLocal({ AvatarUrl: res.url });
-                
+
                 toast.add({ severity: 'info', summary: 'Restaurado', detail: 'Avatar restaurado', life: 3000 });
             } catch (error) {
                 console.error(error);
@@ -123,6 +132,8 @@ const borrarFoto = () => {
 };
 
 const guardar = async () => {
+    if (esAdmin.value) return;
+
     confirm.require({
         message: '¿Guardar los cambios en tus datos?',
         header: 'Confirmación',
@@ -139,9 +150,9 @@ const ejecutarGuardado = async () => {
     cargando.value = true;
     try {
         await NutricionistaService.modificarMiPerfil(form.value);
-        
+
         authStore.actualizarPerfilLocal(form.value);
-        
+
         toast.add({ severity: 'success', summary: 'Guardado', detail: 'Datos actualizados', life: 3000 });
     } catch (error) {
         console.error(error);
@@ -155,7 +166,7 @@ const ejecutarGuardado = async () => {
 <template>
     <div class="card border-0 shadow-sm rounded-4 h-100">
         <div class="card-body p-4">
-            
+
             <div v-if="cargando" class="text-center py-5">
                 <i class="pi pi-spin pi-spinner text-primary" style="font-size: 2rem"></i>
             </div>
@@ -163,21 +174,19 @@ const ejecutarGuardado = async () => {
             <div v-else>
                 <h5 class="card-title fw-bold mb-3 text-primary">
                     <i class="pi pi-user me-2"></i>Mi Perfil
+                    <span v-if="esAdmin" class="badge bg-secondary ms-2 text-white"
+                        style="font-size: 0.8rem">Admin</span>
                 </h5>
-                
+
                 <div class="d-flex flex-column align-items-center mb-4">
                     <div class="position-relative avatar-container shadow-sm">
-                        
-                        <img 
-                            v-if="avatarUrl" 
-                            :src="avatarUrl" 
-                            class="avatar-img"
-                            :class="{ 'opacity-50': subiendoFoto }"
-                            alt="Avatar"
-                        >
+
+                        <img v-if="avatarUrl" :src="avatarUrl" class="avatar-img"
+                            :class="{ 'opacity-50': subiendoFoto }" alt="Avatar">
 
                         <div v-else class="avatar-circle">
-                            {{ form.Nombre ? form.Nombre.charAt(0).toUpperCase() : (emailMostrar.charAt(0).toUpperCase() || 'U') }}
+                            {{ form.Nombre ? form.Nombre.charAt(0).toUpperCase() : (emailMostrar.charAt(0).toUpperCase()
+                            || 'U') }}
                         </div>
 
                         <div class="avatar-overlay" @click="abrirSelector">
@@ -185,25 +194,15 @@ const ejecutarGuardado = async () => {
                             <i v-else class="pi pi-spin pi-spinner fs-2 text-white"></i>
                         </div>
 
-                        <button 
-                            v-if="!esImagenDefault" 
-                            @click.stop="borrarFoto"
-                            class="btn btn-danger btn-sm btn-delete shadow"
-                            title="Eliminar foto"
-                            type="button"
-                        >
+                        <button v-if="!esImagenDefault" @click.stop="borrarFoto"
+                            class="btn btn-danger btn-sm btn-delete shadow" title="Eliminar foto" type="button">
                             <i class="pi pi-trash" style="font-size: 0.8rem"></i>
                         </button>
 
-                        <input 
-                            type="file" 
-                            ref="fileInput" 
-                            class="d-none" 
-                            accept="image/png, image/jpeg, image/jpg, image/webp"
-                            @change="alSeleccionarArchivo"
-                        >
+                        <input type="file" ref="fileInput" class="d-none"
+                            accept="image/png, image/jpeg, image/jpg, image/webp" @change="alSeleccionarArchivo">
                     </div>
-                    <div class="mt-2 small texto-ayuda">Haz clic en la foto para cambiarla</div>                
+                    <div class="mt-2 small texto-ayuda">Haz clic en la foto para cambiarla</div>
                 </div>
 
                 <form @submit.prevent="guardar">
@@ -212,31 +211,35 @@ const ejecutarGuardado = async () => {
                         <input type="email" class="form-control" v-model="emailMostrar" readonly disabled>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" v-model="form.Nombre" required>
+                    <div v-if="!esAdmin">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" v-model="form.Nombre" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Apellido</label>
+                                <input type="text" class="form-control" v-model="form.Apellido" required>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Apellido</label>
-                            <input type="text" class="form-control" v-model="form.Apellido" required>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" v-model="form.Telefono" placeholder="Ej: +54 9 11...">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" v-model="form.Telefono"
+                                    placeholder="Ej: +54 9 11...">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Matrícula</label>
+                                <input type="text" class="form-control" v-model="form.Matricula"
+                                    placeholder="Ej: MN-1234">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Matrícula</label>
-                            <input type="text" class="form-control" v-model="form.Matricula" placeholder="Ej: MN-1234">
-                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 rounded-3 mt-2" :disabled="cargando">
+                            {{ cargando ? 'Guardando...' : 'Guardar Cambios' }}
+                        </button>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 rounded-3 mt-2" :disabled="cargando">
-                        {{ cargando ? 'Guardando...' : 'Guardar Cambios' }}
-                    </button>
                 </form>
             </div>
         </div>
@@ -266,7 +269,7 @@ const ejecutarGuardado = async () => {
     height: 100%;
     background-color: var(--primary-color, #695CFE);
     color: white;
-    font-size: 2.5rem; 
+    font-size: 2.5rem;
     font-weight: bold;
     display: flex;
     justify-content: center;
@@ -313,6 +316,6 @@ const ejecutarGuardado = async () => {
 }
 
 :global(.dark-theme) .texto-ayuda {
-    color: #aeb5ce !important; 
+    color: #aeb5ce !important;
 }
 </style>

@@ -1,16 +1,16 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { UsuarioService } from '../services/UsuarioService';
-import { NutricionistaService } from '../services/NutricionistaService';
-import type { UsuarioRequestDTO } from '../types/dto/request/UsuarioRequestDTO';
-import type { UsuarioResponseDTO } from '../types/dto/response/UsuarioResponseDTO';
-import router from '../router';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { UsuarioService } from "../services/UsuarioService";
+import { NutricionistaService } from "../services/NutricionistaService";
+import type { UsuarioRequestDTO } from "../types/dto/request/UsuarioRequestDTO";
+import type { UsuarioResponseDTO } from "../types/dto/response/UsuarioResponseDTO";
+import router from "../router";
 
-export const useAuthStore = defineStore('auth', () => {
+export const useAuthStore = defineStore("auth", () => {
   const usuario = ref<UsuarioResponseDTO | null>(null);
   const cargando = ref(true);
 
-  const perfilStorage = localStorage.getItem('nutri_perfil');
+  const perfilStorage = localStorage.getItem("nutri_perfil");
   const perfil = ref<any>(perfilStorage ? JSON.parse(perfilStorage) : null);
 
   const estaAutenticado = computed(() => !!usuario.value);
@@ -18,13 +18,15 @@ export const useAuthStore = defineStore('auth', () => {
 
   const nombreMostrar = computed(() => {
     if (perfil.value?.Nombre) return `${perfil.value.Nombre}`;
-    return usuario.value?.Email || 'Usuario';
+    return usuario.value?.Email || "Usuario";
   });
 
   const iniciales = computed(() => {
-    if (perfil.value?.Nombre) return perfil.value.Nombre.charAt(0).toUpperCase();
-    if (usuario.value?.Email) return usuario.value.Email.charAt(0).toUpperCase();
-    return 'U';
+    if (perfil.value?.Nombre)
+      return perfil.value.Nombre.charAt(0).toUpperCase();
+    if (usuario.value?.Email)
+      return usuario.value.Email.charAt(0).toUpperCase();
+    return "U";
   });
 
   async function login(credenciales: UsuarioRequestDTO) {
@@ -33,20 +35,27 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await UsuarioService.login(credenciales);
       usuario.value = data;
 
-      try {
-        const perfilData = await NutricionistaService.obtenerMiPerfil();
-        perfil.value = perfilData;
-        
-        localStorage.setItem('nutri_perfil', JSON.stringify(perfilData));
-      } catch (e) {
-        console.warn('Login exitoso, pero no se pudo cargar el perfil detallado', e);
+      if (data.Rol.toString() === "Nutricionista") {
+        try {
+          const perfilData = await NutricionistaService.obtenerMiPerfil();
+          perfil.value = perfilData;
+          localStorage.setItem("nutri_perfil", JSON.stringify(perfilData));
+        } catch (e) {
+          console.warn(
+            "Login exitoso, pero no se pudo cargar el perfil detallado",
+            e,
+          );
+        }
+      } else {
+        perfil.value = null;
+        localStorage.removeItem("nutri_perfil");
       }
 
       return usuario.value;
     } catch (error) {
       usuario.value = null;
       perfil.value = null;
-      localStorage.removeItem('nutri_perfil');
+      localStorage.removeItem("nutri_perfil");
       throw error;
     } finally {
       cargando.value = false;
@@ -57,17 +66,25 @@ export const useAuthStore = defineStore('auth', () => {
     cargando.value = true;
     try {
       const data = await UsuarioService.refrescarToken();
-      usuario.value = data; 
-      
-      if (usuario.value && !perfil.value) {
-          const storageData = localStorage.getItem('nutri_perfil');
-          if (storageData) {
-              perfil.value = JSON.parse(storageData);
-          } else {
-              const perfilData = await NutricionistaService.obtenerMiPerfil();
-              perfil.value = perfilData;
-              localStorage.setItem('nutri_perfil', JSON.stringify(perfilData));
+      usuario.value = data;
+
+      if (
+        usuario.value &&
+        usuario.value.Rol.toString() === "Nutricionista" &&
+        !perfil.value
+      ) {
+        const storageData = localStorage.getItem("nutri_perfil");
+        if (storageData) {
+          perfil.value = JSON.parse(storageData);
+        } else {
+          try {
+            const perfilData = await NutricionistaService.obtenerMiPerfil();
+            perfil.value = perfilData;
+            localStorage.setItem("nutri_perfil", JSON.stringify(perfilData));
+          } catch (e) {
+            console.warn("No se pudo refrescar el perfil de nutricionista", e);
           }
+        }
       }
     } catch (error) {
       usuario.value = null;
@@ -77,32 +94,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-function actualizarPerfilLocal(nuevosDatos: any) {
+  function actualizarPerfilLocal(nuevosDatos: any) {
     if (perfil.value) {
       const perfilActualizado = { ...perfil.value, ...nuevosDatos };
       perfil.value = perfilActualizado;
-      localStorage.setItem('nutri_perfil', JSON.stringify(perfilActualizado));
+      localStorage.setItem("nutri_perfil", JSON.stringify(perfilActualizado));
     }
 
     if (usuario.value && nuevosDatos.AvatarUrl !== undefined) {
-        usuario.value = { 
-            ...usuario.value, 
-            AvatarUrl: nuevosDatos.AvatarUrl 
-        };
+      usuario.value = {
+        ...usuario.value,
+        AvatarUrl: nuevosDatos.AvatarUrl,
+      };
     }
   }
 
   async function logout() {
     try {
-      await UsuarioService.logout(); 
+      await UsuarioService.logout();
     } catch (error) {
       console.error("Error logout", error);
     } finally {
       usuario.value = null;
       perfil.value = null;
-      localStorage.removeItem('nutri_perfil');
-      
-      router.push('/login');
+      localStorage.removeItem("nutri_perfil");
+
+      router.push("/login");
     }
   }
 
@@ -117,6 +134,6 @@ function actualizarPerfilLocal(nuevosDatos: any) {
     login,
     verificarSesion,
     logout,
-    actualizarPerfilLocal
+    actualizarPerfilLocal,
   };
 });
