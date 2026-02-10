@@ -51,4 +51,17 @@ public class CategoriaService : ICategoriaService
 
         return _categoriaMapper.Map<CategoriaResponseDTO>(categoria);
     }
+
+    public async Task<CategoriaResponseDTO> ModificarCategoria(int idCategoria, CategoriaRequestDTO dto)
+    {
+        var categoria = await _context.Categorias
+            .FirstOrDefaultAsync(c => c.Id_Categoria == idCategoria)
+            ?? throw new ResourceNotFoundException($"No se encontró categoria con el id: {idCategoria}");
+
+        categoria.Nombre = dto.Nombre;
+
+        await _context.SaveChangesAsync();
+
+        return _categoriaMapper.Map<CategoriaResponseDTO>(categoria);
+    }
 }

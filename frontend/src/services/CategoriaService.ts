@@ -29,4 +29,12 @@ export const CategoriaService = {
     );
     return response.data;
   },
+
+  async modificar(id: number, dto: CategoriaRequestDTO): Promise<CategoriaResponseDTO> {
+    const response = await apiClient.put<CategoriaResponseDTO>(
+      ApiRoutes.Categoria.Modificar(id),
+      dto,
+    );
+    return response.data;
+  },
 };

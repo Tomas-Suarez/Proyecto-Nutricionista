@@ -9,4 +9,5 @@ public interface ICategoriaService
     Task<CategoriaResponseDTO> CrearCategoria(CategoriaRequestDTO dto);
     Task EliminarCategoria(int idCategoria);
     Task<CategoriaResponseDTO> ObtenerPorId(int idCategoria);
+    Task<CategoriaResponseDTO> ModificarCategoria(int idCategoria, CategoriaRequestDTO dto);
 }

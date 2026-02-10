@@ -50,4 +50,12 @@ public class CategoriaController : ControllerBase
         await _categoriaService.EliminarCategoria(idCategoria);
         return NoContent();
     }
+
+    [Authorize(Roles = nameof(Admin))]
+    [HttpPut("{idCategoria}")]
+    public async Task<ActionResult<CategoriaResponseDTO>> Modificar(int idCategoria, [FromBody] CategoriaRequestDTO dto)
+    {
+        var resultado = await _categoriaService.ModificarCategoria(idCategoria, dto);
+        return Ok(resultado);
+    }
 }
