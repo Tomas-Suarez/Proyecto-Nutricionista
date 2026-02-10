@@ -21,6 +21,14 @@ public class CategoriaService : ICategoriaService
 
     public async Task<CategoriaResponseDTO> CrearCategoria(CategoriaRequestDTO dto)
     {
+        bool existe = await _context.Categorias
+            .AnyAsync(c => c.Nombre == dto.Nombre);
+
+        if (existe)
+        {
+            throw new DuplicateResourceException($"La categoría '{dto.Nombre}' ya existe.");
+        }
+
         var nuevaCategoria = _categoriaMapper.Map<CategoriaEntity>(dto);
         _context.Categorias.Add(nuevaCategoria);
         await _context.SaveChangesAsync();
@@ -57,6 +65,14 @@ public class CategoriaService : ICategoriaService
         var categoria = await _context.Categorias
             .FirstOrDefaultAsync(c => c.Id_Categoria == idCategoria)
             ?? throw new ResourceNotFoundException($"No se encontró categoria con el id: {idCategoria}");
+
+        bool existeNombre = await _context.Categorias
+            .AnyAsync(c => c.Nombre == dto.Nombre && c.Id_Categoria != idCategoria);
+
+        if (existeNombre)
+        {
+            throw new DuplicateResourceException($"Ya existe otra categoría con el nombre '{dto.Nombre}'.");
+        }
 
         categoria.Nombre = dto.Nombre;
 
