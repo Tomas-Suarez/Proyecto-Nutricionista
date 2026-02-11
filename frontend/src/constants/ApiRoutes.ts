@@ -86,4 +86,20 @@ export abstract class ApiRoutes {
     ObtenerTodas: `/Categoria`, //GET
     Eliminar: (id: number) => `/Categoria/${id}`, //DELETE
   };
+
+    public static readonly Patologia = {
+    Crear: `/Patologia`,
+    ObtenerPorId: (id: number) => `/Patologia/${id}`, //GET
+    Modificar: (id: number) => `/Patologia/${id}`, //PUT
+    ObtenerTodas: `/Patologia`, //GET
+    Eliminar: (id: number) => `/Patologia/${id}`, //DELETE
+  };
+
+    public static readonly Objetivo = {
+    Crear: `/Objetivo`,
+    ObtenerPorId: (id: number) => `/Objetivo/${id}`, //GET
+    Modificar: (id: number) => `/Objetivo/${id}`, //PUT
+    ObtenerTodas: `/Objetivo`, //GET
+    Eliminar: (id: number) => `/Objetivo/${id}`, //DELETE
+  };
 }
