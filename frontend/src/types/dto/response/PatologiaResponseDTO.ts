@@ -1,4 +1,4 @@
 export interface PatologiaResponseDTO{
-    Id_Categoria: number;
+    Id_Patologia: number;
     Nombre: string;
 }

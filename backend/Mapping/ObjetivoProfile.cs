@@ -5,9 +5,9 @@ using backend.Models;
 
 namespace backend.Mapping;
 
-public class PatologiaProfile : Profile
+public class ObjetivoProfile : Profile
 {
-    public PatologiaProfile()
+    public ObjetivoProfile()
     {
         CreateMap<ObjetivoEntity, ObjetivoResponseDTO>();
 

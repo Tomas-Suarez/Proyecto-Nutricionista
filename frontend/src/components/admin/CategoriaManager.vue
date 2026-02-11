@@ -170,7 +170,7 @@ const confirmarEliminar = (categoria: CategoriaResponseDTO) => {
                         id="nombre" 
                         v-model="nombreCategoria" 
                         class="w-100" 
-                        placeholder="Ej: Desayuno, Cena..." 
+                        placeholder="Ej: Carne, Verdura..." 
                         autofocus
                     />
                 </div>

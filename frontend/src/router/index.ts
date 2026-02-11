@@ -59,10 +59,15 @@ const router = createRouter({
           name: "configuracion",
           component: () => import("../views/ConfiguracionView.vue"),
         },
-                {
+        {
           path: "patologias",
           name: "patologias",
           component: () => import("../views/admin/AdminPatologiasView.vue"),
+        },
+        {
+          path: "objetivos",
+          name: "objetivos",
+          component: () => import("../views/admin/AdminObjetivosView.vue"),
         },
       ],
     },
