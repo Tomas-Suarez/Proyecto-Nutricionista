@@ -1,3 +1,5 @@
+import type { CategoriaResponseDTO } from "./CategoriaResponseDTO";
+
 export interface ComidaResponseDTO{
     Id_Comida: number;
     Nombre: string;
@@ -10,5 +12,5 @@ export interface ComidaResponseDTO{
     Azucares: number;
     Porcion: string;
     Imagen_Url: string;
-    Categorias: string[];
+    Categorias: CategoriaResponseDTO[];
 }

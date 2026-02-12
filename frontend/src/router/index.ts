@@ -42,7 +42,7 @@ const router = createRouter({
         {
           path: "comidas",
           name: "comidas",
-          component: () => import("../views/admin/AdminCategoriaView.vue"),
+          component: () => import("../views/admin/AdminComidaView.vue"),
         },
         {
           path: "categorias",

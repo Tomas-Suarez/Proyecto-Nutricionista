@@ -108,6 +108,13 @@ public class ComidaService : IComidaService
 
         _mapper.Map(dto, comidaExiste);
 
+        comidaExiste.Categorias.Clear();
+
+        foreach (var cat in nuevaCategorias)
+        {
+            comidaExiste.Categorias.Add(cat);
+        }
+
         decimal calculoCalorias = (dto.Proteinas * 4) + (dto.Carbohidratos * 4) + (dto.Grasas * 9);
         comidaExiste.Calorias = (int)Math.Round(calculoCalorias);
 

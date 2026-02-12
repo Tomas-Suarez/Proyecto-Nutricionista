@@ -38,6 +38,7 @@ public record ComidaRequestDTO(
 
     [Required(ErrorMessage = "Debes seleccionar al menos una categoría")]
     [MinLength(1, ErrorMessage = "La comida debe estar vinculada a al menos una categoría")]
+    [MaxLength(3, ErrorMessage = "No puedes seleccionar más de 3 categorías.")]
     List<int> Ids_Categorias
 
 );

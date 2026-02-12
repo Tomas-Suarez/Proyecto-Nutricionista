@@ -12,5 +12,5 @@ public record ComidaResponseDTO(
     decimal? Azucares,
     string Porcion,
     string? Imagen_Url,
-    List<string> Categorias
+    List<CategoriaResponseDTO> Categorias
 );
