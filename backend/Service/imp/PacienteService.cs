@@ -71,6 +71,19 @@ public class PacienteService : IPacienteService
         paciente.Id_Nutricionista = nutricionista.Id_Nutricionista;
         paciente.Estado = EEstadoPaciente.Activo;
 
+        if (dto.IdsPatologias != null && dto.IdsPatologias.Count > 0)
+        {
+            paciente.PatologiaPacientes = new List<PatologiaPacienteEntity>();
+
+            foreach (var idPatologia in dto.IdsPatologias)
+            {
+                paciente.PatologiaPacientes.Add(new PatologiaPacienteEntity
+                {
+                    Id_Patologia = idPatologia
+                });
+            }
+        }
+
         _context.Pacientes.Add(paciente);
         await _context.SaveChangesAsync();
 
@@ -142,9 +155,8 @@ public class PacienteService : IPacienteService
     }
 
     public async Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(
-        int page, int size, EEstadoPaciente? estado)
+            int page, int size, EEstadoPaciente? estado)
     {
-
         var userId = _currentUserService.GetUserId()
             ?? throw new UnauthenticatedException("Usuario no autenticado...");
 
@@ -155,6 +167,9 @@ public class PacienteService : IPacienteService
 
         var query = _context.Pacientes
             .Include(p => p.Usuario)
+            .Include(p => p.Objetivo)
+            .Include(p => p.PatologiaPacientes)
+                .ThenInclude(pp => pp.Patologia)
             .Where(p => p.Id_Nutricionista == nutricionistaId);
 
         if (estado.HasValue)

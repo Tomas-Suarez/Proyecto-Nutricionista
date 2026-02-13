@@ -7,4 +7,6 @@ export interface RegistroPacienteDTO{
     Genero: string;
     Peso_Inicial: number;
     Altura_Cm: number;
+    IdObjetivo?: number | null;
+    IdsPatologias?: number[];
 }
