@@ -13,7 +13,6 @@ namespace backend.Controller;
 [Route("api/[controller]")]
 public class PesajeController : ControllerBase
 {
-
     private readonly IPesajeService _pesajeService;
 
     public PesajeController(IPesajeService pesajeService)
@@ -26,26 +25,15 @@ public class PesajeController : ControllerBase
     public async Task<ActionResult<PesajeResponseDTO>> Registrar([FromBody] PesajeRequestDTO dto)
     {
         var resultado = await _pesajeService.RegistrarPesaje(dto);
-
         return CreatedAtAction(nameof(ObtenerPorId), new { idPesaje = resultado.Id_Pesaje }, resultado);
     }
 
-    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpGet("{idPesaje}")]
     public async Task<ActionResult<PesajeResponseDTO>> ObtenerPorId(int idPesaje)
     {
         var pesaje = await _pesajeService.ObtenerPesajePorId(idPesaje);
         return Ok(pesaje);
-    }
-
-    [Authorize(Roles = nameof(Paciente))]
-    [HttpGet("me")]
-    public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerMiHistorial(
-        [FromQuery] int page = 1,
-        [FromQuery] int size = 10)
-    {
-        var historial = await _pesajeService.ObtenerMiHistorial(page, size);
-        return Ok(historial);
     }
 
     [Authorize(Roles = nameof(Nutricionista))]
@@ -54,5 +42,32 @@ public class PesajeController : ControllerBase
     {
         await _pesajeService.EliminarPesaje(idPesaje);
         return NoContent();
+    }
+
+    [Authorize(Roles = nameof(Nutricionista))]
+    [HttpGet("historial/{idPaciente}")]
+    public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerHistorialPaciente(
+        int idPaciente,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 10)
+    {
+        var historial = await _pesajeService.ObtenerHistorialPorPaciente(idPaciente, page, size);
+        return Ok(historial);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("publico/historial")]
+    public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerHistorialPublico(
+        [FromBody] LoginPacienteDTO credenciales,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 10)
+    {
+        var historial = await _pesajeService.ObtenerHistorialPublico(
+            credenciales.Token, 
+            credenciales.Codigo, 
+            page, 
+            size
+        );
+        return Ok(historial);
     }
 }

@@ -6,7 +6,7 @@ namespace backend.Service;
 public interface IDietaService
 {
     Task<DietaResponseDTO> CrearDieta(DietaRequestDTO dto);
-    
+
     Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO dto);
 
     Task EliminarDieta(int idDieta);
@@ -17,5 +17,7 @@ public interface IDietaService
 
     Task<DietaResponseDTO?> ObtenerDietaActiva(int idPaciente);
 
-    Task ActivarDieta(int idDieta); 
+    Task ActivarDieta(int idDieta);
+
+    Task<DietaResponseDTO?> ObtenerDietaActualPublica(string token, string codigo);
 }

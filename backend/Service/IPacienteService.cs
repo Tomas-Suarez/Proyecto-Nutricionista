@@ -8,14 +8,13 @@ namespace backend.Service;
 public interface IPacienteService
 {
         Task<PacienteResponseDTO> RegistrarPaciente(RegistroPacienteDTO dto);
-        
-        Task<PacienteResponseDTO> ObtenerMiPerfil();
 
-        Task<PacienteResponseDTO> ModificarMiPerfil(PacienteRequestDTO dto);
+        Task<PacienteResponseDTO> ModificarPaciente(int idPaciente, PacienteRequestDTO dto);
 
-        Task<PacienteResponseDTO> ModificarPaciente(int IdPaciente, PacienteRequestDTO dto);
-
-        Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(int page, int size, EEstadoPaciente? estado);
+        Task<PagedResponseDTO<PacienteResponseDTO>> ObtenerPacientesPorNutricionista(
+            int page, int size, EEstadoPaciente? estado, string? busqueda = null);
 
         Task CambiarEstado(int idPaciente, EEstadoPaciente nuevoEstado);
+
+        Task<PacienteResponseDTO> ValidarCredencialesPaciente(string token, string codigo);
 }

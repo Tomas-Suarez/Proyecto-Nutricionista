@@ -24,11 +24,10 @@ public class DietaController : ControllerBase
     public async Task<ActionResult<DietaResponseDTO>> Registrar([FromBody] DietaRequestDTO dto)
     {
         var resultado = await _dietaService.CrearDieta(dto);
-
         return CreatedAtAction(nameof(ObtenerPorId), new { id = resultado.Id_Dieta }, resultado);
     }
 
-    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpGet("{id}")]
     public async Task<ActionResult<DietaResponseDTO>> ObtenerPorId(int id)
     {
@@ -52,7 +51,7 @@ public class DietaController : ControllerBase
         return NoContent();
     }
 
-    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpGet("paciente/{idPaciente}/historial")]
     public async Task<ActionResult<IEnumerable<DietaResponseDTO>>> ObtenerHistorial(int idPaciente)
     {
@@ -60,7 +59,7 @@ public class DietaController : ControllerBase
         return Ok(resultado);
     }
 
-    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Paciente)}")]
+    [Authorize(Roles = nameof(Nutricionista))]
     [HttpGet("paciente/{idPaciente}/activa")]
     public async Task<ActionResult<DietaResponseDTO>> ObtenerActiva(int idPaciente)
     {
@@ -69,10 +68,21 @@ public class DietaController : ControllerBase
     }
 
     [Authorize(Roles = nameof(Nutricionista))]
-    [HttpPatch("{id}/activar/{idPaciente}")]
+    [HttpPatch("{id}/activar")]
     public async Task<IActionResult> ActivarDieta(int id)
     {
         await _dietaService.ActivarDieta(id);
         return Ok(new { message = "Dieta activada correctamente." });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("publico/activa")]
+    public async Task<ActionResult<DietaResponseDTO>> ObtenerDietaActivaPublica([FromBody] LoginPacienteDTO credenciales)
+    {
+        var resultado = await _dietaService.ObtenerDietaActualPublica(credenciales.Token, credenciales.Codigo);
+        
+        if (resultado == null) return NotFound("El paciente no tiene una dieta activa asignada.");
+        
+        return Ok(resultado);
     }
 }

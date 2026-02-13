@@ -14,36 +14,28 @@ namespace backend.Controller;
 [ApiController]
 public class PacienteController : ControllerBase
 {
-    private IPacienteService _pacienteService;
+    private readonly IPacienteService _pacienteService;
 
     public PacienteController(IPacienteService pacienteService)
     {
         _pacienteService = pacienteService;
     }
 
+    [HttpPost("acceder")]
+    [AllowAnonymous] 
+    public async Task<ActionResult<PacienteResponseDTO>> Acceder([FromBody] LoginPacienteDTO login)
+    {
+        var resultado = await _pacienteService.ValidarCredencialesPaciente(login.Token, login.Codigo);
+        return Ok(resultado);
+    }
+
+
     [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
     [HttpPost]
     public async Task<ActionResult<PacienteResponseDTO>> Registrar([FromBody] RegistroPacienteDTO dto)
     {
         var resultado = await _pacienteService.RegistrarPaciente(dto);
-
-        return Created(string.Empty, resultado);
-    }
-
-    [Authorize(Roles = nameof(Paciente))]
-    [HttpGet("me")]
-    public async Task<ActionResult<PacienteResponseDTO>> ObtenerMiPerfil()
-    {
-        var resultado = await _pacienteService.ObtenerMiPerfil();
-        return Ok(resultado);
-    }
-
-    [Authorize(Roles = nameof(Paciente))]
-    [HttpPut("me")]
-    public async Task<ActionResult<PacienteResponseDTO>> ModificarMiPerfil([FromBody] PacienteRequestDTO dto)
-    {
-        var resultado = await _pacienteService.ModificarMiPerfil(dto);
-        return Ok(resultado);
+        return CreatedAtAction(nameof(Registrar), new { id = resultado.Id_Paciente }, resultado);
     }
 
     [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
@@ -58,11 +50,12 @@ public class PacienteController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResponseDTO<PacienteResponseDTO>>> ListarMisPacientes(
         [FromQuery] EEstadoPaciente? estado,
+        [FromQuery] string? busqueda,
         [FromQuery] int page = 1,
         [FromQuery] int size = 10)
     {
         var resultado = await _pacienteService.ObtenerPacientesPorNutricionista(
-            page, size, estado);
+            page, size, estado, busqueda);
 
         return Ok(resultado);
     }

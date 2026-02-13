@@ -19,7 +19,7 @@ namespace backend.Models
 
         [Required]
         [StringLength(20)]
-        [RegularExpression("Nutricionista|Paciente", ErrorMessage = "El rol debe ser 'Nutricionista' o 'Paciente'")]
+        [RegularExpression("Nutricionista", ErrorMessage = "El rol debe ser 'Nutricionista'")]
         public string Rol { get; set; } = string.Empty;
 
         [StringLength(255)]

@@ -37,6 +37,7 @@ public class DietaService : IDietaService
 
         var nuevaDieta = _mapper.Map<DietaEntity>(dto);
         nuevaDieta.Activa = true;
+        nuevaDieta.Id_Paciente = paciente.Id_Paciente;
 
         foreach (var comidaDto in dto.Comidas)
         {
@@ -168,6 +169,30 @@ public class DietaService : IDietaService
         return _mapper.Map<IEnumerable<DietaResponseDTO>>(historial);
     }
 
+    public async Task<DietaResponseDTO?> ObtenerDietaActualPublica(string token, string codigo)
+    {
+        // 1. Validar Paciente
+        var paciente = await _context.Pacientes
+            .FirstOrDefaultAsync(p => p.TokenAcceso == token);
+
+        if (paciente == null)
+        {
+            throw new ResourceNotFoundException("Enlace inválido.");
+        }
+
+        if (paciente.CodigoAcceso != codigo)
+        {
+            throw new AccessDeniedException("Código incorrecto.");
+        }
+
+        var dietaActiva = await _context.Dietas
+            .Include(d => d.DietaComidas)
+                .ThenInclude(dc => dc.Comida)
+            .FirstOrDefaultAsync(d => d.Id_Paciente == paciente.Id_Paciente && d.Activa);
+
+        return dietaActiva != null ? _mapper.Map<DietaResponseDTO>(dietaActiva) : null;
+    }
+
     private async Task<PacienteEntity> ObtenerPacienteAutorizado(int idPaciente)
     {
         var userId = _currentUserService.GetUserId()
@@ -193,11 +218,7 @@ public class DietaService : IDietaService
                 ?? throw new AccessDeniedException("Paciente no autorizado.");
         }
 
-        return await _context.Pacientes
-            .FirstOrDefaultAsync(p =>
-                p.Id_Paciente == idPaciente &&
-                p.Id_Usuario == userId)
-            ?? throw new AccessDeniedException("Paciente no autorizado.");
+        throw new AccessDeniedException("Acceso restringido a profesionales.");
     }
 
     private async Task ValidarAccesoPaciente(PacienteEntity paciente)

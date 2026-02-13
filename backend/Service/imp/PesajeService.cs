@@ -34,6 +34,9 @@ public class PesajeService : IPesajeService
                 .FirstOrDefaultAsync();
 
         var nuevoPesaje = _mapper.Map<PesajeEntity>(dto);
+
+        nuevoPesaje.Id_Paciente = paciente.Id_Paciente;
+
         _context.Pesajes.Add(nuevoPesaje);
         await _context.SaveChangesAsync();
 
@@ -44,8 +47,8 @@ public class PesajeService : IPesajeService
         var response = _mapper.Map<PesajeResponseDTO>(nuevoPesaje);
 
         return response with { DiferenciaPesoAnterior = nuevoPesaje.Peso_Kg - pesoReferencia };
-
     }
+
     public async Task EliminarPesaje(int idPesaje)
     {
         var pesaje = await _context.Pesajes
@@ -59,36 +62,34 @@ public class PesajeService : IPesajeService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerMiHistorial(int page, int size)
+    public async Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerHistorialPorPaciente(int idPaciente, int page, int size)
     {
-
-        var userId = _currentUserService.GetUserId()
-            ?? throw new UnauthenticatedException("Usuario no autenticado.");
-
-        var pacienteId = await _context.Pacientes
-            .Where(p => p.Id_Usuario == userId)
-            .Select(p => p.Id_Paciente)
-            .FirstOrDefaultAsync();
-
-        if (pacienteId == 0)
+        if (!_currentUserService.IsNutricionista() && !_currentUserService.IsAdmin())
         {
-            throw new ResourceNotFoundException("Perfil de paciente no encontrado.");
+            throw new AccessDeniedException("Acceso denegado. Los pacientes deben usar el enlace público.");
         }
 
-        var query = _context.Pesajes
-            .Where(p => p.Id_Paciente == pacienteId)
-            .OrderByDescending(p => p.Fecha_Pesaje);
+        await ObtenerPacienteAutorizado(idPaciente);
 
-        var totalRegistros = await query.CountAsync();
+        return await ConsultarPesajesPaginados(idPaciente, page, size);
+    }
 
-        var pesajes = await query
-            .Skip((page - 1) * size)
-            .Take(size)
-            .ToListAsync();
+    public async Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerHistorialPublico(string token, string codigo, int page, int size)
+    {
+        var paciente = await _context.Pacientes
+            .FirstOrDefaultAsync(p => p.TokenAcceso == token);
 
-        var pesajesDto = _mapper.Map<IEnumerable<PesajeResponseDTO>>(pesajes);
+        if (paciente == null)
+        {
+            throw new ResourceNotFoundException("El enlace es inválido o ha expirado.");
+        }
 
-        return new PagedResponseDTO<PesajeResponseDTO>(pesajesDto, totalRegistros, page, size);
+        if (paciente.CodigoAcceso != codigo)
+        {
+            throw new AccessDeniedException("El código de acceso es incorrecto.");
+        }
+
+        return await ConsultarPesajesPaginados(paciente.Id_Paciente, page, size);
     }
 
     public async Task<PesajeResponseDTO> ObtenerPesajePorId(int idPesaje)
@@ -130,11 +131,7 @@ public class PesajeService : IPesajeService
                 ?? throw new AccessDeniedException("Paciente no autorizado.");
         }
 
-        return await _context.Pacientes
-            .FirstOrDefaultAsync(p =>
-                p.Id_Paciente == idPaciente &&
-                p.Id_Usuario == userId)
-            ?? throw new AccessDeniedException("Paciente no autorizado.");
+        throw new AccessDeniedException("Operación no permitida para usuarios estándar.");
     }
 
     private async Task ValidarAccesoPaciente(PacienteEntity paciente)
@@ -158,7 +155,24 @@ public class PesajeService : IPesajeService
             return;
         }
 
-        if (paciente.Id_Usuario != userId)
-            throw new AccessDeniedException("No tienes acceso a este pesaje.");
+        throw new AccessDeniedException("No tienes permiso para realizar esta acción.");
+    }
+
+    private async Task<PagedResponseDTO<PesajeResponseDTO>> ConsultarPesajesPaginados(int idPaciente, int page, int size)
+    {
+        var query = _context.Pesajes
+            .Where(p => p.Id_Paciente == idPaciente)
+            .OrderByDescending(p => p.Fecha_Pesaje);
+
+        var totalRegistros = await query.CountAsync();
+
+        var pesajes = await query
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
+
+        var pesajesDto = _mapper.Map<IEnumerable<PesajeResponseDTO>>(pesajes);
+
+        return new PagedResponseDTO<PesajeResponseDTO>(pesajesDto, totalRegistros, page, size);
     }
 }

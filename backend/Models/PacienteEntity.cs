@@ -11,12 +11,6 @@ public class PacienteEntity
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id_Paciente { get; set; }
 
-    [Required]
-    public int Id_Usuario { get; set; }
-
-    [ForeignKey("Id_Usuario")]
-    public virtual UsuarioEntity Usuario { get; set; } = null!;
-
     public int? Id_Nutricionista { get; set; }
 
     [ForeignKey("Id_Nutricionista")]
@@ -42,6 +36,9 @@ public class PacienteEntity
     [StringLength(20)]
     public string? Telefono { get; set; }
 
+    [StringLength(100)]
+    public string? Email { get; set; } = string.Empty;
+
     [Required]
     [StringLength(20)]
     public string Genero { get; set; } = string.Empty;
@@ -55,7 +52,11 @@ public class PacienteEntity
     public decimal Altura_Cm { get; set; }
 
     public EEstadoPaciente Estado { get; set; } = EEstadoPaciente.Activo;
+    
+    [StringLength(100)]
+    public string? TokenAcceso { get; set; }
 
+    [StringLength(10)]
+    public string? CodigoAcceso { get; set; }
     public virtual ICollection<PatologiaPacienteEntity> PatologiaPacientes { get; set; } = new List<PatologiaPacienteEntity>();
-
 }
