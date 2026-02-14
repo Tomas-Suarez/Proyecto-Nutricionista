@@ -6,6 +6,7 @@ import App from './App.vue';
 import router from './router/index';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
+import Tooltip from 'primevue/tooltip';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap'; 
@@ -15,6 +16,7 @@ import './style.css';
 const app = createApp(App);
 
 app.use(createPinia());
+app.directive('tooltip', Tooltip);
 app.use(router);
 app.use(PrimeVue, {
     theme: {

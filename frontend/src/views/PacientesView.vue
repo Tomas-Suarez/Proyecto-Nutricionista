@@ -1,121 +1,95 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
 import { PacienteService } from '../services/PacienteService';
 import type { PacienteResponseDTO } from '../types/dto/response/PacienteResponseDTO';
 import type { DataTablePageEvent } from 'primevue/datatable';
 
-import Dialog from 'primevue/dialog';
-import RegistroPacienteForm from '../components/nutricionista/RegistroPacienteForm.vue';
 import TablaPacientes from '../components/nutricionista/TablaPacientes.vue';
+import RegistroPacienteForm from '../components/nutricionista/RegistroPacienteForm.vue';
+import Dialog from 'primevue/dialog';
 
-const router = useRouter();
-const toast = useToast();
-
-const loading = ref(true);
 const pacientes = ref<PacienteResponseDTO[]>([]);
 const totalRecords = ref(0);
+const loading = ref(false);
+const rows = ref(10);
+const first = ref(0);
 const busquedaActual = ref('');
 
-const lazyParams = ref({ page: 0, rows: 10 });
-
-const dialogoVisible = ref(false);
+const mostrarModal = ref(false);
 const pacienteSeleccionado = ref<PacienteResponseDTO | null>(null);
 
-onMounted(() => {
-    cargarPacientes();
-});
-
-const cargarPacientes = async () => {
+const cargarPacientes = async (page: number = 1, size: number = 10, search: string = '') => {
     loading.value = true;
     try {
-        const pageNumber = lazyParams.value.page + 1;
-        const response = await PacienteService.obtenerPacientesPorNutricionista(
-            pageNumber,
-            lazyParams.value.rows,
-            undefined
-        );
-
-        // @ts-ignore
-        pacientes.value = response.Items || [];
-        // @ts-ignore
-        totalRecords.value = response.TotalCount || 0;
+        const res = await PacienteService.obtenerPacientesPorNutricionista(page, size, undefined, search);
+        
+        if (res) {
+            pacientes.value = (res as any).Items || []; 
+            totalRecords.value = (res as any).TotalCount || 0;
+            
+        }
     } catch (error) {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar la lista', life: 3000 });
+        pacientes.value = [];
     } finally {
         loading.value = false;
     }
 };
 
+onMounted(() => cargarPacientes());
+
 const onPage = (event: DataTablePageEvent) => {
-    lazyParams.value = event;
-    cargarPacientes();
+    first.value = event.first;
+    rows.value = event.rows;
+    const page = (event.page ?? 0) + 1;
+    cargarPacientes(page, rows.value, busquedaActual.value);
 };
 
 const onBusqueda = (termino: string) => {
     busquedaActual.value = termino;
-    lazyParams.value.page = 0;
-    cargarPacientes();
+    first.value = 0;
+    cargarPacientes(1, rows.value, termino);
 };
 
-const onNuevoPaciente = () => {
+const abrirNuevo = () => {
     pacienteSeleccionado.value = null;
-    dialogoVisible.value = true;
+    mostrarModal.value = true;
 };
 
-const onEditarPaciente = (paciente: PacienteResponseDTO) => {
-    pacienteSeleccionado.value = { ...paciente };
-    dialogoVisible.value = true;
+const abrirEditar = (paciente: PacienteResponseDTO) => {
+    pacienteSeleccionado.value = { ...paciente }; 
+    mostrarModal.value = true;
 };
 
-const onVerDieta = (id: number) => router.push(`/app/pacientes/${id}/dieta`);
-const onVerPesaje = (id: number) => router.push(`/app/pacientes/${id}/pesaje`);
-
-const alGuardarPaciente = async () => {
-    dialogoVisible.value = false;
-    await cargarPacientes();
+const alGuardar = () => {
+    mostrarModal.value = false;
+    cargarPacientes(1, rows.value, busquedaActual.value);
 };
 </script>
 
 <template>
-    <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-body p-4">
-            
-            <TablaPacientes 
-                :pacientes="pacientes"
-                :totalRecords="totalRecords"
-                :loading="loading"
-                :rows="lazyParams.rows"
-                @page="onPage"
-                @busqueda="onBusqueda"
-                @nuevo="onNuevoPaciente"
-                @editar="onEditarPaciente"
-                @ver-dieta="onVerDieta"
-                @ver-pesaje="onVerPesaje"
-            />
-
-        </div>
+    <div class="p-4">
+        <TablaPacientes 
+            :pacientes="pacientes"
+            :totalRecords="totalRecords"
+            :loading="loading"
+            :rows="rows"
+            @page="onPage"
+            @busqueda="onBusqueda"
+            @nuevo="abrirNuevo"
+            @editar="abrirEditar"
+        />
 
         <Dialog 
-            v-model:visible="dialogoVisible" 
-            modal 
-            :header="pacienteSeleccionado ? 'Editar Paciente' : 'Nuevo Paciente'" 
-            :style="{ width: '500px' }"
-            :draggable="false"
+            v-model:visible="mostrarModal" 
+            :header="pacienteSeleccionado ? 'Editar Paciente' : 'Registrar Nuevo Paciente'" 
+            :style="{ width: '50vw' }" 
+            modal
         >
             <RegistroPacienteForm 
-                :pacienteEditar="pacienteSeleccionado"
-                @guardar="alGuardarPaciente" 
-                @cancelar="dialogoVisible = false" 
+                :pacienteEdicion="pacienteSeleccionado" 
+                @guardar="alGuardar" 
+                @cancelar="mostrarModal = false" 
             />
         </Dialog>
     </div>
 </template>
-
-<style scoped>
-:global(.dark-theme) .card {
-    background-color: #1d1b31 !important;
-    color: #fff !important;
-}
-</style>

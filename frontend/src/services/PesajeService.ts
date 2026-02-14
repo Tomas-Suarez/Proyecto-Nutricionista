@@ -13,12 +13,13 @@ export const PesajeService = {
     return response.data;
   },
 
-  async obtenerMiHistorial(
+  async obtenerHistorialPorPaciente(
+    idPaciente: number,
     page: number = 1,
     size: number = 10,
   ): Promise<PagedResponse<PesajeResponseDTO>> {
     const response = await apiClient.get<PagedResponse<PesajeResponseDTO>>(
-      ApiRoutes.Pesaje.ObtenerMiHistorial(page, size),
+      ApiRoutes.Pesaje.ObtenerHistorialPorPaciente(idPaciente, page, size),
     );
     return response.data;
   },

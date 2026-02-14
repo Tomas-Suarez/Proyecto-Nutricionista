@@ -3,9 +3,6 @@ using System.ComponentModel.DataAnnotations;
 namespace backend.Dtos.request;
 
 public record PacienteRequestDTO(
-
-    [Required(ErrorMessage = "El ID de usuario es obligatorio.")]
-    int Id_Usuario,
     
     [Required(ErrorMessage = "El nombre es obligatorio.")]
     [StringLength(100, ErrorMessage = "El nombre no puede superar los 100 caracteres.")]
@@ -27,5 +24,8 @@ public record PacienteRequestDTO(
     string Genero,
 
     [Required(ErrorMessage = "La altura es obligatoria.")]
-    decimal Altura_Cm
+    decimal Altura_Cm,
+
+    int? Id_Objetivo,
+    List<int> IdsPatologias
 );

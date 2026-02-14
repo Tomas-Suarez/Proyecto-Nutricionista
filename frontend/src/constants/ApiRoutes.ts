@@ -14,14 +14,12 @@ export abstract class ApiRoutes {
 
   public static readonly Paciente = {
     Registrar: `/Paciente`,
-    ObtenerMiPerfil: `/Paciente/me`, //GET
-    ModificarMiPerfil: `/Paciente/me`, //PUT
+    AccederPublico: `/Paciente/acceder`,
     ActualizarPaciente: (id: number) => `/Paciente/${id}`,
-    Listar: (estado?: number, page: number = 1, size: number = 10) => {
+    Listar: (estado?: number, busqueda?: string, page: number = 1, size: number = 10) => {
       let url = `/Paciente?page=${page}&size=${size}`;
-      if (estado !== undefined) {
-        url += `&estado=${estado}`;
-      }
+      if (estado !== undefined && estado !== null) url += `&estado=${estado}`;
+      if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
       return url;
     },
     CambiarEstado: (id: number) => `/Paciente/${id}/estado`,
@@ -36,22 +34,22 @@ export abstract class ApiRoutes {
   public static readonly Pesaje = {
     Registrar: `/Pesaje`,
     ObtenerPorId: (id: number) => `/Pesaje/${id}`,
-    ObtenerMiHistorial: (page: number = 1, size: number = 10) =>
-      `/Pesaje/me?page=${page}&size=${size}`,
+    ObtenerHistorialPorPaciente: (idPaciente: number, page: number = 1, size: number = 10) =>
+      `/Pesaje/historial/${idPaciente}?page=${page}&size=${size}`,
+    ObtenerHistorialPublico: (page: number = 1, size: number = 10) =>
+      `/Pesaje/publico/historial?page=${page}&size=${size}`,
     Eliminar: (id: number) => `/Pesaje/${id}`,
   };
 
   public static readonly Dieta = {
     Registrar: `/Dieta`,
-    ObtenerPorId: (id: number) => `/Dieta/${id}`, //GET
-    Modificar: (id: number) => `/Dieta/${id}`, //PUT
-    Eliminar: (id: number) => `/Dieta/${id}`, //DELETE
-    ObtenerHistorial: (id: number) =>
-      `/Dieta/Paciente/${id}/historial`,
-    ObtenerDietaActiva: (id: number) =>
-      `/Dieta/Paciente/${id}/activa`,
-    ActivarDieta: (idDieta: number, idPaciente: Number) =>
-      `/Dieta/${idDieta}/activar/${idPaciente}`,
+    ObtenerPorId: (id: number) => `/Dieta/${id}`,
+    Modificar: (id: number) => `/Dieta/${id}`,
+    Eliminar: (id: number) => `/Dieta/${id}`,
+    ObtenerHistorial: (id: number) => `/Dieta/Paciente/${id}/historial`,
+    ObtenerDietaActiva: (id: number) => `/Dieta/Paciente/${id}/activa`,
+    ActivarDieta: (idDieta: number) => `/Dieta/${idDieta}/activar`,
+    ObtenerDietaPublica: `/Dieta/publico/activa`,
   };
 
   public static readonly Comida = {
@@ -87,7 +85,7 @@ export abstract class ApiRoutes {
     Eliminar: (id: number) => `/Categoria/${id}`, //DELETE
   };
 
-    public static readonly Patologia = {
+  public static readonly Patologia = {
     Crear: `/Patologia`,
     ObtenerPorId: (id: number) => `/Patologia/${id}`, //GET
     Modificar: (id: number) => `/Patologia/${id}`, //PUT
@@ -95,7 +93,7 @@ export abstract class ApiRoutes {
     Eliminar: (id: number) => `/Patologia/${id}`, //DELETE
   };
 
-    public static readonly Objetivo = {
+  public static readonly Objetivo = {
     Crear: `/Objetivo`,
     ObtenerPorId: (id: number) => `/Objetivo/${id}`, //GET
     Modificar: (id: number) => `/Objetivo/${id}`, //PUT

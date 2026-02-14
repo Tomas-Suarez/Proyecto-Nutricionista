@@ -1,5 +1,4 @@
 export interface PacienteRequestDTO {
-    Id_Usuario: number;
     Nombre: string;
     Apellido: string;
     Dni: string;
@@ -7,4 +6,7 @@ export interface PacienteRequestDTO {
     Telefono?: string;
     Genero: string;
     Altura_Cm: number;
+    Peso_Inicial: number;
+    Id_Objetivo?: number | null;
+    IdsPatologias: number[];
 }

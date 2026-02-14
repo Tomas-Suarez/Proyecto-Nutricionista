@@ -15,23 +15,6 @@ export const PacienteService = {
     return response.data;
   },
 
-  async obtenerMiPerfil(): Promise<PacienteResponseDTO> {
-    const response = await apiClient.get<PacienteResponseDTO>(
-      ApiRoutes.Paciente.ObtenerMiPerfil,
-    );
-    return response.data;
-  },
-
-  async modificarMiPerfil(
-    dto: PacienteRequestDTO,
-  ): Promise<PacienteResponseDTO> {
-    const response = await apiClient.put<PacienteResponseDTO>(
-      ApiRoutes.Paciente.ModificarMiPerfil,
-      dto,
-    );
-    return response.data;
-  },
-
   async modificarPaciente(
     id: number,
     dto: PacienteRequestDTO,
@@ -43,14 +26,14 @@ export const PacienteService = {
     return response.data;
   },
 
-  async obtenerPacientesPorNutricionista(
+async obtenerPacientesPorNutricionista(
     page: number = 1,
     size: number = 10,
     estado?: EEstadoPaciente,
+    busqueda?: string,
   ): Promise<PagedResponse<PacienteResponseDTO>> {
-    const url = ApiRoutes.Paciente.Listar(estado, page, size);
-    const response =
-      await apiClient.get<PagedResponse<PacienteResponseDTO>>(url);
+    const url = ApiRoutes.Paciente.Listar(estado, busqueda, page, size);
+    const response = await apiClient.get<PagedResponse<PacienteResponseDTO>>(url);
 
     return response.data;
   },

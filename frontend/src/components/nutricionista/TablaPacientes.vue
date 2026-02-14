@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import type { PacienteResponseDTO } from '../../types/dto/response/PacienteResponseDTO';
 import { EEstadoPaciente } from '../../types/enum/EEstadoPaciente';
+import { useToast } from 'primevue/usetoast';
 
 import DataTable, { type DataTablePageEvent } from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -25,6 +26,7 @@ const emit = defineEmits<{
     (e: 'ver-pesaje', id: number): void;
 }>();
 
+const toast = useToast();
 const filtros = ref({});
 const terminoBusqueda = ref('');
 const timeoutBusqueda = ref<any>(null);
@@ -34,6 +36,17 @@ const onInputBusqueda = () => {
     timeoutBusqueda.value = setTimeout(() => {
         emit('busqueda', terminoBusqueda.value);
     }, 500);
+};
+
+const copiarAcceso = (paciente: PacienteResponseDTO) => {
+    if (!paciente.TokenAcceso) {
+        toast.add({ severity: 'warn', summary: 'Atención', detail: 'El paciente no tiene un token de acceso.', life: 3000 });
+        return;
+    }
+    const urlAcceso = `${window.location.origin}/acceso/${paciente.TokenAcceso}`;
+    navigator.clipboard.writeText(urlAcceso).then(() => {
+        toast.add({ severity: 'success', summary: 'Copiado', detail: `Link copiado.`, life: 3000 });
+    });
 };
 
 const getSeverity = (estado: string) => {
@@ -46,55 +59,30 @@ const getSeverity = (estado: string) => {
 <template>
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h5 class="fw-bold text-primary m-0">
-                <i class="pi pi-users me-2"></i>Mis Pacientes
-            </h5>
-            <p class="text-muted small m-0">Gestiona dietas y seguimientos</p>
+            <h5 class="fw-bold text-primary m-0"><i class="pi pi-users me-2"></i>Mis Pacientes</h5>
+            <p class="text-muted small m-0">Gestión de seguimientos</p>
         </div>
-
         <div class="d-flex gap-2">
             <span class="p-input-icon-left">
                 <i class="pi pi-search" />
-                <InputText 
-                    v-model="terminoBusqueda" 
-                    placeholder="Buscar..." 
-                    @input="onInputBusqueda"
-                    class="p-inputtext-sm" 
-                    style="width: 200px;"
-                />
+                <InputText v-model="terminoBusqueda" placeholder="Buscar..." @input="onInputBusqueda" class="p-inputtext-sm" style="width: 250px;" />
             </span>
-            <Button 
-                label="Nuevo Paciente" 
-                icon="pi pi-plus" 
-                class="p-button-primary rounded-3"
-                @click="emit('nuevo')"
-            />
+            <Button label="Nuevo Paciente" icon="pi pi-plus" class="p-button-primary rounded-3" @click="emit('nuevo')" />
         </div>
     </div>
 
     <DataTable 
-        v-model:filters="filtros"
-        :value="props.pacientes" 
-        :loading="props.loading"
-        lazy
-        paginator 
-        :rows="props.rows"
-        :totalRecords="props.totalRecords"
-        @page="(e) => emit('page', e)"
-        :rowsPerPageOptions="[5, 10, 20]"
-        dataKey="Id_Paciente"
-        class="p-datatable-sm custom-table"
-        stripedRows
+        :value="props.pacientes" :loading="props.loading" lazy paginator :rows="props.rows"
+        :totalRecords="props.totalRecords" @page="(e) => emit('page', e)" :rowsPerPageOptions="[5, 10, 20]"
+        dataKey="Id_Paciente" class="p-datatable-sm custom-table shadow-sm rounded-3" stripedRows
     >
-        <template #empty> No se encontraron pacientes. </template>
+        <template #empty> No hay pacientes. </template>
 
-        <Column header="Paciente" field="Nombre" style="min-width: 250px">
+        <Column header="Paciente" field="Nombre" style="min-width: 220px">
             <template #body="{ data }">
-                <div class="d-flex align-items-center gap-3 h-100">
-                    <div class="avatar-circle shadow-sm">
-                        <span>{{ data.Nombre ? data.Nombre.charAt(0) : '' }}{{ data.Apellido ? data.Apellido.charAt(0) : '' }}</span>
-                    </div>
-                    <div class="d-flex flex-column justify-content-center">
+                <div class="d-flex align-items-center gap-3 py-1">
+                    <div class="avatar-circle"><span>{{ data.Nombre?.charAt(0) }}{{ data.Apellido?.charAt(0) }}</span></div>
+                    <div class="d-flex flex-column">
                         <span class="fw-bold text-dark-emphasis">{{ data.Nombre }} {{ data.Apellido }}</span>
                         <span class="text-muted small">{{ data.Email }}</span>
                     </div>
@@ -104,48 +92,59 @@ const getSeverity = (estado: string) => {
 
         <Column header="Físico">
             <template #body="{ data }">
-                <div class="small d-flex flex-column justify-content-center h-100">
+                <div class="small d-flex flex-column gap-1">
                     <div><i class="pi pi-arrows-v me-1 text-primary"></i> {{ data.Altura_Cm }} cm</div>
-                    <div class="mt-1"><i class="pi pi-chart-bar me-1 text-success"></i> {{ data.Peso_Inicial }} kg</div>
+                    <div><i class="pi pi-chart-bar me-1 text-success"></i> {{ data.Peso_Inicial }} kg</div>
                 </div>
             </template>
         </Column>
 
-        <Column header="Objetivo" field="Objetivo">
+        <Column header="Objetivo">
             <template #body="{ data }">
-                <div class="d-flex align-items-center h-100">
-                        <Tag :value="data.Objetivo ? data.Objetivo.Nombre : 'Sin Objetivo'" severity="info" class="text-xs" rounded />
-                </div>
+                <Tag :value="data.Objetivo ? data.Objetivo.Nombre : 'Sin Objetivo'" 
+                     :severity="data.Objetivo ? 'info' : 'secondary'" 
+                     class="text-xs" rounded />
             </template>
         </Column>
 
-        <Column header="Patologías" style="max-width: 200px;">
+        <Column header="Patologías" style="min-width: 200px">
             <template #body="{ data }">
-                <div class="d-flex flex-wrap gap-1 align-items-center h-100">
+                <div class="d-flex flex-wrap gap-1 align-items-center">
                     <template v-if="data.Patologias && data.Patologias.length > 0">
-                        <Tag v-for="pat in data.Patologias" :key="pat.Id_Patologia" :value="pat.Nombre" severity="warning" class="text-xs" rounded />
+                        <Tag v-for="pat in data.Patologias" :key="pat.Id_Patologia" 
+                             :value="pat.Nombre" severity="warning" class="text-xs" rounded />
                     </template>
                     <template v-else>
-                        <Tag value="Sin Patologías" severity="info" class="text-xs" rounded />
+                        <Tag value="Ninguna" severity="secondary" class="text-xs" rounded />
                     </template>
                 </div>
             </template>
         </Column>
 
-        <Column header="Estado" field="Estado">
+        <Column header="Acceso" style="min-width: 150px;">
             <template #body="{ data }">
-                <div class="d-flex justify-content-center align-items-center h-100">
-                    <Tag :value="data.Estado" :severity="getSeverity(data.Estado)" class="text-xs" style="transform: scale(0.9)" />
+                <div class="d-flex align-items-center gap-2">
+                    <Button icon="pi pi-link" class="p-button-rounded p-button-text p-button-primary" @click="copiarAcceso(data)" v-tooltip.top="'Copiar Link'" />
+                    <div class="d-flex flex-column">
+                        <span class="tiny-text text-muted">PIN</span>
+                        <Tag :value="data.CodigoAcceso" severity="secondary" class="font-monospace px-2" />
+                    </div>
                 </div>
             </template>
         </Column>
 
-        <Column header="Acciones" style="min-width: 180px;">
+        <Column header="Estado">
             <template #body="{ data }">
-                <div class="d-flex gap-2 justify-content-end align-items-center h-100">
-                    <Button icon="pi pi-chart-line" v-tooltip.top="'Ver Pesajes'" class="p-button-rounded p-button-outlined p-button-info btn-sm-custom" @click="emit('ver-pesaje', data.Id_Paciente)" />
-                    <Button icon="pi pi-apple" v-tooltip.top="'Ver Dieta'" class="p-button-rounded p-button-outlined p-button-success btn-sm-custom" @click="emit('ver-dieta', data.Id_Paciente)" />
-                    <Button icon="pi pi-pencil" v-tooltip.top="'Editar'" class="p-button-rounded p-button-text p-button-secondary btn-sm-custom" @click="emit('editar', data)" />
+                <Tag :value="data.Estado" :severity="getSeverity(data.Estado)" class="text-xs" />
+            </template>
+        </Column>
+
+        <Column header="Acciones">
+            <template #body="{ data }">
+                <div class="d-flex gap-2">
+                    <Button icon="pi pi-chart-line" class="p-button-rounded p-button-outlined p-button-info btn-sm-custom" @click="emit('ver-pesaje', data.Id_Paciente)" v-tooltip.top="'Pesajes'"/>
+                    <Button icon="pi pi-apple" class="p-button-rounded p-button-outlined p-button-success btn-sm-custom" @click="emit('ver-dieta', data.Id_Paciente)" v-tooltip.top="'Dietas'"/>
+                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-secondary btn-sm-custom" @click="emit('editar', data)" v-tooltip.top="'Editar'"/>
                 </div>
             </template>
         </Column>
@@ -153,17 +152,15 @@ const getSeverity = (estado: string) => {
 </template>
 
 <style scoped>
-:deep(.p-datatable-thead > tr > th),
-:deep(.p-datatable-tbody > tr > td) {
-    vertical-align: middle !important;
-}
 .avatar-circle {
-    width: 40px; height: 40px; border-radius: 50%;
-    background-color: var(--primary-color); color: white;
+    width: 38px; height: 38px; border-radius: 50%;
+    background-color: #6366f1; color: white;
     display: flex; justify-content: center; align-items: center;
-    font-weight: bold; overflow: hidden; font-size: 1.1rem; text-transform: uppercase;
+    font-weight: bold; font-size: 0.9rem; text-transform: uppercase;
 }
-.btn-sm-custom { width: 2.5rem !important; height: 2.5rem !important; padding: 0 !important; }
-
-:global(.dark-theme) .text-dark-emphasis { color: #fff !important; }
+.btn-sm-custom { width: 2.2rem !important; height: 2.2rem !important; }
+.tiny-text { font-size: 0.65rem; font-weight: bold; text-transform: uppercase; margin-bottom: -2px; }
+.font-monospace { font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 1px; }
+:deep(.p-datatable-sm .p-datatable-tbody > tr > td) { padding: 0.5rem; }
+.custom-table { border: 1px solid #e2e8f0; }
 </style>

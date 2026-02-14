@@ -50,9 +50,9 @@ export const DietaService = {
     return response.data;
   },
 
-  async activarDieta(idDieta: number, idPaciente: number): Promise<void> {
+  async activarDieta(idDieta: number): Promise<void> {
     await apiClient.patch<void>(
-      ApiRoutes.Dieta.ActivarDieta(idDieta, idPaciente),
+      ApiRoutes.Dieta.ActivarDieta(idDieta)
     );
   },
 };

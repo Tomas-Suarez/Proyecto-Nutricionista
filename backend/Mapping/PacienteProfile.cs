@@ -16,7 +16,7 @@ public class PacienteProfile : Profile
             .ForMember(dest => dest.Objetivo, opt => opt.Ignore())
             .ForMember(dest => dest.PatologiaPacientes, opt => opt.Ignore())
             .ForMember(dest => dest.Id_Objetivo, opt => opt.MapFrom(src => src.IdObjetivo))
-            
+
             .ForMember(dest => dest.TokenAcceso, opt => opt.Ignore())
             .ForMember(dest => dest.CodigoAcceso, opt => opt.Ignore());
 
@@ -32,7 +32,6 @@ public class PacienteProfile : Profile
             .ForMember(dest => dest.CodigoAcceso, opt => opt.Ignore());
 
 
-        // 3. RESPUESTA (Entity -> DTO)
         CreateMap<PacienteEntity, PacienteResponseDTO>()
             .ConstructUsing((src, context) => new PacienteResponseDTO(
                 src.Id_Paciente,
@@ -45,8 +44,10 @@ public class PacienteProfile : Profile
                 src.Peso_Inicial,
                 src.Altura_Cm,
                 src.Estado.ToString(),
+                src.TokenAcceso,
+                src.CodigoAcceso,
                 src.Objetivo != null ? context.Mapper.Map<ObjetivoResponseDTO>(src.Objetivo) : null,
-                src.PatologiaPacientes.Select(pp => 
+                src.PatologiaPacientes.Select(pp =>
                     context.Mapper.Map<PatologiaResponseDTO>(pp.Patologia)
                 ).ToList()
             ));

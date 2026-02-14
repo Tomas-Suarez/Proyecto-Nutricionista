@@ -96,6 +96,28 @@ public class PacienteService : IPacienteService
 
         _pacienteMapper.Map(dto, paciente);
 
+        var patologiasAEliminar = paciente.PatologiaPacientes
+            .Where(pp => !dto.IdsPatologias.Contains(pp.Id_Patologia))
+            .ToList();
+
+        foreach (var pp in patologiasAEliminar)
+        {
+            paciente.PatologiaPacientes.Remove(pp);
+        }
+
+        var existentesIds = paciente.PatologiaPacientes.Select(pp => pp.Id_Patologia).ToList();
+        foreach (var idPat in dto.IdsPatologias)
+        {
+            if (!existentesIds.Contains(idPat))
+            {
+                paciente.PatologiaPacientes.Add(new PatologiaPacienteEntity
+                {
+                    Id_Paciente = idPaciente,
+                    Id_Patologia = idPat
+                });
+            }
+        }
+
         await _context.SaveChangesAsync();
 
         return await ObtenerPacienteConDetalles(idPaciente);
