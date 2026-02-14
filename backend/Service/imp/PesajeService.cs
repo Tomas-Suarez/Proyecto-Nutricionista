@@ -167,11 +167,22 @@ public class PesajeService : IPesajeService
         var totalRegistros = await query.CountAsync();
 
         var pesajes = await query
+            .Include(p => p.Paciente)
             .Skip((page - 1) * size)
             .Take(size)
             .ToListAsync();
 
-        var pesajesDto = _mapper.Map<IEnumerable<PesajeResponseDTO>>(pesajes);
+        var pesajesDto = _mapper.Map<List<PesajeResponseDTO>>(pesajes);
+
+        for (int i = 0; i < pesajesDto.Count; i++)
+        {
+            if (i + 1 < pesajesDto.Count)
+            {
+                decimal diferencia = pesajesDto[i].Peso_Kg - pesajesDto[i + 1].Peso_Kg;
+
+                pesajesDto[i] = pesajesDto[i] with { DiferenciaPesoAnterior = diferencia };
+            }
+        }
 
         return new PagedResponseDTO<PesajeResponseDTO>(pesajesDto, totalRegistros, page, size);
     }

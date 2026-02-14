@@ -23,11 +23,10 @@ const emit = defineEmits<{
     (e: 'nuevo'): void;
     (e: 'editar', paciente: PacienteResponseDTO): void;
     (e: 'ver-dieta', id: number): void;
-    (e: 'ver-pesaje', id: number): void;
+    (e: 'ver-pesaje', paciente: PacienteResponseDTO): void; 
 }>();
 
 const toast = useToast();
-const filtros = ref({});
 const terminoBusqueda = ref('');
 const timeoutBusqueda = ref<any>(null);
 
@@ -142,8 +141,10 @@ const getSeverity = (estado: string) => {
         <Column header="Acciones">
             <template #body="{ data }">
                 <div class="d-flex gap-2">
-                    <Button icon="pi pi-chart-line" class="p-button-rounded p-button-outlined p-button-info btn-sm-custom" @click="emit('ver-pesaje', data.Id_Paciente)" v-tooltip.top="'Pesajes'"/>
+                    <Button icon="pi pi-chart-line" class="p-button-rounded p-button-outlined p-button-info btn-sm-custom" @click="emit('ver-pesaje', data)" v-tooltip.top="'Pesajes'"/>
+                    
                     <Button icon="pi pi-apple" class="p-button-rounded p-button-outlined p-button-success btn-sm-custom" @click="emit('ver-dieta', data.Id_Paciente)" v-tooltip.top="'Dietas'"/>
+                    
                     <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-secondary btn-sm-custom" @click="emit('editar', data)" v-tooltip.top="'Editar'"/>
                 </div>
             </template>

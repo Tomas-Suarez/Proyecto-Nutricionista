@@ -31,8 +31,7 @@ public class PesajeProfile : Profile
                         CalcularImc(src.Peso_Kg, src.Paciente != null ? src.Paciente.Altura_Cm : 0)))
                     .ForMember(dest => dest.ClasificacionImc, opt => opt.MapFrom(src =>
                         ObtenerClasificacion(CalcularImc(src.Peso_Kg, src.Paciente != null ? src.Paciente.Altura_Cm : 0))))
-                    .ForMember(dest => dest.DiferenciaPesoAnterior, opt => opt.Ignore());
-
+                    .ForMember(dest => dest.DiferenciaPesoAnterior, opt => opt.MapFrom(src => 0m));
     }
 
     private decimal CalcularImc(decimal peso, decimal alturaCm)
