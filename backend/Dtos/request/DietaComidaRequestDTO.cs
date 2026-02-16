@@ -10,6 +10,8 @@ public record DietaComidaRequestDTO(
     [Required(AllowEmptyStrings = true)]
     string Cantidad,
 
+    string? NombreCategoria,
+
     [Required]
     bool Es_Permitido,
 

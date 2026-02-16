@@ -23,6 +23,7 @@ export abstract class ApiRoutes {
       return url;
     },
     CambiarEstado: (id: number) => `/Paciente/${id}/estado`,
+    ObtenerPorId: (id: number) => `/paciente/${id}`,
   };
 
   public static readonly Nutricionista = {

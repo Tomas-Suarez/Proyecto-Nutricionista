@@ -69,14 +69,15 @@ public class DietaService : IDietaService
                 Cantidad = comidaDto.Cantidad,
                 Es_Permitido = comidaDto.Es_Permitido,
                 Dia = comidaDto.Dia,
-                Momento = comidaDto.Momento
+                Momento = comidaDto.Momento,
+                NombreCategoria = comidaDto.NombreCategoria ?? string.Empty
             });
         }
 
         _context.Dietas.Add(nuevaDieta);
         await _context.SaveChangesAsync();
 
-        return _mapper.Map<DietaResponseDTO>(nuevaDieta);
+        return await ObtenerPorId(nuevaDieta.Id_Dieta);
     }
 
     public async Task<DietaResponseDTO> ObtenerPorId(int idDieta)
@@ -85,6 +86,7 @@ public class DietaService : IDietaService
                 .Include(d => d.Paciente)
                 .Include(d => d.DietaComidas)
                     .ThenInclude(dc => dc.Comida)
+                    .ThenInclude(c => c.Categorias)
                 .FirstOrDefaultAsync(d => d.Id_Dieta == idDieta)
                 ?? throw new ResourceNotFoundException($"No se encontró la dieta con id: {idDieta}");
 
@@ -120,6 +122,7 @@ public class DietaService : IDietaService
             foreach (var d in otrasActivas) d.Activa = false;
         }
 
+        _context.DietaComidas.RemoveRange(dietaExistente.DietaComidas);
         dietaExistente.DietaComidas.Clear();
 
         foreach (var comidaDto in dto.Comidas)
@@ -133,7 +136,8 @@ public class DietaService : IDietaService
                 Cantidad = comidaDto.Cantidad,
                 Es_Permitido = comidaDto.Es_Permitido,
                 Dia = comidaDto.Dia,
-                Momento = comidaDto.Momento
+                Momento = comidaDto.Momento,
+                NombreCategoria = comidaDto.NombreCategoria ?? string.Empty
             });
         }
 
@@ -235,6 +239,7 @@ public class DietaService : IDietaService
         }
 
         var dietaActiva = await _context.Dietas
+            .Include(d => d.Paciente)
             .Include(d => d.DietaComidas)
                 .ThenInclude(dc => dc.Comida)
             .FirstOrDefaultAsync(d => d.Id_Paciente == paciente.Id_Paciente && d.Activa);

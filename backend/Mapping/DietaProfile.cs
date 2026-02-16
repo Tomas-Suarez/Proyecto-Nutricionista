@@ -9,20 +9,24 @@ public class DietaProfile : Profile
 {
     public DietaProfile()
     {
-
         CreateMap<DietaComidaEntity, DietaComidaResponseDTO>()
             .ForMember(dest => dest.NombreComida, opt => opt.MapFrom(src => src.Comida.Nombre))
-            .ForMember(dest => dest.Momento, opt => opt.MapFrom(src => src.Momento.ToString()));
-
+            .ForMember(dest => dest.Momento, opt => opt.MapFrom(src => src.Momento.ToString()))
+            .ForMember(dest => dest.NombreCategoria, opt => opt.MapFrom(src => 
+                !string.IsNullOrEmpty(src.NombreCategoria) 
+                ? src.NombreCategoria 
+                : "Varios"));
 
         CreateMap<DietaEntity, DietaResponseDTO>()
-            .ForMember(dest => dest.PacienteNombre, opt => opt.MapFrom(src => 
+            .ForMember(dest => dest.Id_Paciente, opt => opt.MapFrom(src => src.Id_Paciente))
+            .ForMember(dest => dest.PacienteNombre, opt => opt.MapFrom(src =>
                 $"{src.Paciente.Nombre} {src.Paciente.Apellido}"))
             .ForMember(dest => dest.Comidas, opt => opt.MapFrom(src => src.DietaComidas));
 
         CreateMap<DietaRequestDTO, DietaEntity>()
-            .ForMember(dest => dest.DietaComidas, opt => opt.Ignore()); 
-            
-        CreateMap<DietaComidaRequestDTO, DietaComidaEntity>();
+            .ForMember(dest => dest.DietaComidas, opt => opt.Ignore());
+
+        CreateMap<DietaComidaRequestDTO, DietaComidaEntity>()
+            .ForMember(dest => dest.NombreCategoria, opt => opt.MapFrom(src => src.NombreCategoria));
     }
 }

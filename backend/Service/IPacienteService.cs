@@ -16,5 +16,7 @@ public interface IPacienteService
 
         Task CambiarEstado(int idPaciente, EEstadoPaciente nuevoEstado);
 
+        Task<PacienteResponseDTO> ObtenerPorId(int idPaciente);
+
         Task<PacienteResponseDTO> ValidarCredencialesPaciente(string token, string codigo);
 }

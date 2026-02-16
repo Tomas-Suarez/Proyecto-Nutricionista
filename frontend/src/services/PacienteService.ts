@@ -45,4 +45,11 @@ async obtenerPacientesPorNutricionista(
     const url = ApiRoutes.Paciente.CambiarEstado(idPaciente);
     await apiClient.patch(url, { nuevoEstado });
   },
+
+  async obtenerPorId(id: number): Promise<PacienteResponseDTO> {
+    const response = await apiClient.get<PacienteResponseDTO>(
+      ApiRoutes.Paciente.ObtenerPorId(id)
+    );
+    return response.data;
+  },
 };

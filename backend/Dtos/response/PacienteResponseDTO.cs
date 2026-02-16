@@ -13,6 +13,8 @@ public record PacienteResponseDTO(
     string Estado,
     string? TokenAcceso,
     string? CodigoAcceso,
+    decimal PesoActual,
+    decimal Imc,
     ObjetivoResponseDTO? Objetivo, 
     List<PatologiaResponseDTO> Patologias
 );

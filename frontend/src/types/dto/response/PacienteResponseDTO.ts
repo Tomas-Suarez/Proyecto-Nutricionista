@@ -1,18 +1,24 @@
-export interface PacienteResponseDTO {
-    Id_Paciente: number;
-    Nombre: string;
-    Apellido: string;
-    Dni: string;
-    Email?: string;
-    Telefono: string;
-    Genero?: string;
-    Peso_Inicial: number;
-    Altura_Cm: number;
-    Estado: string;
+// ... importaciones
+import type { ObjetivoResponseDTO } from "./ObjetivoResponseDTO";
+import type { PatologiaResponseDTO } from "./PatologiaResponseDTO";
 
-    TokenAcceso?: string;
-    CodigoAcceso?: string;
+export interface PacienteResponseDTO {
+    id_Paciente: number;
+    nombre: string;
+    apellido: string;
+    dni: string;
+    email: string;
+    telefono?: string;
+    genero?: string;
+    peso_Inicial: number;
+    altura_Cm: number;
+    estado: string;
+    tokenAcceso?: string;
+    codigoAcceso?: string;
     
-    Objetivo?: { Id_Objetivo: number; Nombre: string }; 
-    Patologias: { Id_Patologia: number; Nombre: string }[]; 
+    pesoActual: number;
+    imc: number;
+    
+    objetivo?: ObjetivoResponseDTO;
+    patologias: PatologiaResponseDTO[];
 }

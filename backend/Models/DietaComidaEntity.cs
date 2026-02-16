@@ -25,6 +25,9 @@ public class DietaComidaEntity
 
     public required string Cantidad { get; set; }
 
+    [StringLength(100)]
+    public string NombreCategoria { get; set; } = string.Empty;
+
     public bool Es_Permitido { get; set; } = true;
 
     public int Dia { get; set; }

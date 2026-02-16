@@ -59,4 +59,5 @@ public class PacienteEntity
     [StringLength(10)]
     public string? CodigoAcceso { get; set; }
     public virtual ICollection<PatologiaPacienteEntity> PatologiaPacientes { get; set; } = new List<PatologiaPacienteEntity>();
+    public virtual ICollection<PesajeEntity> Pesajes { get; set; } = new List<PesajeEntity>();
 }

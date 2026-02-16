@@ -217,6 +217,20 @@ public class PacienteService : IPacienteService
         return _pacienteMapper.Map<PacienteResponseDTO>(paciente);
     }
 
+    public async Task<PacienteResponseDTO> ObtenerPorId(int idPaciente)
+    {
+        var paciente = await _context.Pacientes
+            .Include(p => p.Objetivo)
+            .Include(p => p.PatologiaPacientes)
+                .ThenInclude(pp => pp.Patologia)
+            .FirstOrDefaultAsync(p => p.Id_Paciente == idPaciente)
+            ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {idPaciente}");
+
+        ValidarAccesoPaciente(paciente);
+
+        return _pacienteMapper.Map<PacienteResponseDTO>(paciente);
+    }
+
     private void ValidarAccesoPaciente(PacienteEntity paciente)
     {
         var userId = _currentUserService.GetUserId();

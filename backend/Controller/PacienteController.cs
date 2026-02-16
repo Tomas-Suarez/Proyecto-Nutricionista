@@ -22,7 +22,7 @@ public class PacienteController : ControllerBase
     }
 
     [HttpPost("acceder")]
-    [AllowAnonymous] 
+    [AllowAnonymous]
     public async Task<ActionResult<PacienteResponseDTO>> Acceder([FromBody] LoginPacienteDTO login)
     {
         var resultado = await _pacienteService.ValidarCredencialesPaciente(login.Token, login.Codigo);
@@ -66,5 +66,13 @@ public class PacienteController : ControllerBase
     {
         await _pacienteService.CambiarEstado(idPaciente, nuevoEstado);
         return NoContent();
+    }
+
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
+    [HttpGet("{idPaciente}")]
+    public async Task<ActionResult<PacienteResponseDTO>> ObtenerPorId(int idPaciente)
+    {
+        var resultado = await _pacienteService.ObtenerPorId(idPaciente);
+        return Ok(resultado);
     }
 }
