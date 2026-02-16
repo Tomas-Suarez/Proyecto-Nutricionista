@@ -27,6 +27,19 @@ public class DietaService : IDietaService
     {
         var paciente = await ObtenerPacienteAutorizado(dto.Id_Paciente);
 
+        var userId = _currentUserService.GetUserId()
+        ?? throw new UnauthenticatedException("Usuario no autenticado.");
+
+        var nutricionistaId = await _context.Nutricionistas
+            .Where(n => n.Id_Usuario == userId)
+            .Select(n => n.Id_Nutricionista)
+            .FirstOrDefaultAsync();
+
+        if (nutricionistaId == 0)
+        {
+            throw new AccessDeniedException("No se encontró el perfil de nutricionista asociado.");
+        }
+
         if (dto.Activa)
         {
             var dietasActivasAnteriores = await _context.Dietas
@@ -41,6 +54,9 @@ public class DietaService : IDietaService
 
         var nuevaDieta = _mapper.Map<DietaEntity>(dto);
         nuevaDieta.Id_Paciente = paciente.Id_Paciente;
+
+        nuevaDieta.Id_Paciente = paciente.Id_Paciente;
+        nuevaDieta.Id_Nutricionista = nutricionistaId;
 
         foreach (var comidaDto in dto.Comidas)
         {
@@ -87,7 +103,13 @@ public class DietaService : IDietaService
 
         await ValidarAccesoPaciente(dietaExistente.Paciente);
 
+        var idPacienteOriginal = dietaExistente.Id_Paciente;
+        var idNutricionistaOriginal = dietaExistente.Id_Nutricionista;
+
         _mapper.Map(dto, dietaExistente);
+
+        dietaExistente.Id_Paciente = idPacienteOriginal;
+        dietaExistente.Id_Nutricionista = idNutricionistaOriginal;
 
         if (dietaExistente.Activa)
         {
@@ -181,10 +203,11 @@ public class DietaService : IDietaService
         var totalCount = await query.CountAsync();
 
         var items = await query
-            .OrderByDescending(d => d.Fecha_Inicio)
-            .Skip((page - 1) * size)
-            .Take(size)
-            .ToListAsync();
+                .OrderByDescending(d => d.Activa)
+                .ThenByDescending(d => d.Fecha_Inicio)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
 
         var dtos = _mapper.Map<IEnumerable<DietaResponseDTO>>(items);
 

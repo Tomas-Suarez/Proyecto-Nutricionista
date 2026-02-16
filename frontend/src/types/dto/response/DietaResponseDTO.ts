@@ -3,10 +3,10 @@ import type { DietaComidaResponseDTO } from './DietaComidaResponseDTO';
 export interface DietaResponseDTO {
     id_Dieta: number;
     nombre: string;
+    descripcion: string;
+    fecha_Inicio: string;
+    fecha_Fin: string;
+    activa: boolean;
     pacienteNombre: string;
-    totalCalorias: number;
-    totalProteinas: number;
-    totalCarbohidratos: number;
-    totalGrasas: number;
-    comidasDetalle?: DietaComidaResponseDTO[]; 
+    comidas: DietaComidaResponseDTO[];
 }

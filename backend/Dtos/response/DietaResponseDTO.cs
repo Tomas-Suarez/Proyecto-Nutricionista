@@ -1,12 +1,13 @@
-using backend.Dtos.response;
+namespace backend.Dtos.response;
 
-public record DietaResponseDTO(
-    int Id_Dieta,
-    string Nombre,
-    string Descripcion,
-    DateTime Fecha_Inicio,
-    DateTime Fecha_Fin,
-    string Estado,
-    string PacienteNombre,
-    List<DietaComidaResponseDTO> Comidas
-);
+public record DietaResponseDTO
+{
+    public int Id_Dieta { get; init; }
+    public string Nombre { get; init; } = string.Empty;
+    public string Descripcion { get; init; } = string.Empty;
+    public DateTime Fecha_Inicio { get; init; }
+    public DateTime Fecha_Fin { get; init; }
+    public bool Activa { get; init; }
+    public string PacienteNombre { get; init; } = string.Empty;
+    public List<DietaComidaResponseDTO> Comidas { get; init; } = new();
+}

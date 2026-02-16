@@ -5,7 +5,8 @@ export interface DietaRequestDTO {
     id_Nutricionista: number;
     nombre: string;
     descripcion: string;
-    fecha_Inicio: string; 
+    fecha_Inicio: string;
     fecha_Fin: string;
-    comidas: DietaComidaRequestDTO[]; 
+    activa: boolean;
+    comidas: DietaComidaRequestDTO[];
 }

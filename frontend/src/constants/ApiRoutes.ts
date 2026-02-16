@@ -46,7 +46,8 @@ export abstract class ApiRoutes {
     ObtenerPorId: (id: number) => `/Dieta/${id}`,
     Modificar: (id: number) => `/Dieta/${id}`,
     Eliminar: (id: number) => `/Dieta/${id}`,
-    ObtenerHistorial: (id: number) => `/Dieta/Paciente/${id}/historial`,
+    ObtenerHistorial: (id: number, page: number = 1, size: number = 10) => 
+      `/Dieta/paciente/${id}/historial?page=${page}&size=${size}`,
     ObtenerDietaActiva: (id: number) => `/Dieta/Paciente/${id}/activa`,
     ActivarDieta: (idDieta: number) => `/Dieta/${idDieta}/activar`,
     ObtenerDietaPublica: `/Dieta/publico/activa`,

@@ -2,6 +2,7 @@ import apiClient from "./ApiClient";
 import { ApiRoutes } from "../constants/ApiRoutes";
 import type { DietaResponseDTO } from "../types/dto/response/DietaResponseDTO";
 import type { DietaRequestDTO } from "../types/dto/request/DietaRequestDTO";
+import type { PagedResponse } from "../types/common/PagedResponse";
 
 export const DietaService = {
   async registrar(dto: DietaRequestDTO): Promise<DietaResponseDTO> {
@@ -36,9 +37,11 @@ export const DietaService = {
 
   async obtenerHistorialPaciente(
     idPaciente: number,
-  ): Promise<DietaResponseDTO[]> {
-    const response = await apiClient.get<DietaResponseDTO[]>(
-      ApiRoutes.Dieta.ObtenerHistorial(idPaciente),
+    page: number = 1,
+    size: number = 5
+  ): Promise<PagedResponse<DietaResponseDTO>> {
+    const response = await apiClient.get<PagedResponse<DietaResponseDTO>>(
+      ApiRoutes.Dieta.ObtenerHistorial(idPaciente, page, size),
     );
     return response.data;
   },

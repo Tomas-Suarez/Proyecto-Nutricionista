@@ -7,7 +7,7 @@ public record DietaComidaRequestDTO(
 [Required]
     int Id_Comida,
 
-    [Required]
+    [Required(AllowEmptyStrings = true)]
     string Cantidad,
 
     [Required]

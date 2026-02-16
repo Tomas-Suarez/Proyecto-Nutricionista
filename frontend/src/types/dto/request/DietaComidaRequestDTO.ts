@@ -1,8 +1,9 @@
-import { EHorarioComida } from '../../enum/EHorarioComida'
+import { EHorarioComida } from '../../enum/EHorarioComida';
 
 export interface DietaComidaRequestDTO {
     id_Comida: number;
-    cantidad: number;
-    horario: EHorarioComida;
-    nota?: string;
+    cantidad: string;
+    es_Permitido: boolean;
+    dia: number;
+    momento: EHorarioComida;
 }

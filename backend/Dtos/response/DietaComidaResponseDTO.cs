@@ -1,11 +1,11 @@
 namespace backend.Dtos.response;
 
-public record DietaComidaResponseDTO(
-    int Id_Dieta_Comida,
-    int Id_Comida,
-    string NombreComida,
-    string Cantidad,
-    bool Es_Permitido,
-    int Dia,
-    string Momento
-);
+public record DietaComidaResponseDTO
+{
+    public int Id_Comida { get; init; }
+    public string NombreComida { get; init; } = string.Empty;
+    public string Cantidad { get; init; } = string.Empty;
+    public bool Es_Permitido { get; init; }
+    public int Dia { get; init; }
+    public string Momento { get; init; } = string.Empty;
+}
