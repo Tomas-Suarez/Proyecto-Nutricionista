@@ -22,34 +22,37 @@ public class DietaService : IDietaService
         _currentUserService = currentUserService;
     }
 
-    public async Task<DietaResponseDTO> CrearDieta(DietaRequestDTO dto)
+public async Task<DietaResponseDTO> CrearDieta(DietaRequestDTO dto)
     {
         var paciente = await ObtenerPacienteAutorizado(dto.Id_Paciente);
 
-        var dietasActivasAnteriores = await _context.Dietas
-            .Where(d => d.Id_Paciente == dto.Id_Paciente && d.Activa)
-            .ToListAsync();
-
-        foreach (var dietaVieja in dietasActivasAnteriores)
+        if (dto.Activa)
         {
-            dietaVieja.Activa = false;
+            var dietasActivasAnteriores = await _context.Dietas
+                .Where(d => d.Id_Paciente == dto.Id_Paciente && d.Activa)
+                .ToListAsync();
+
+            foreach (var dietaVieja in dietasActivasAnteriores)
+            {
+                dietaVieja.Activa = false;
+            }
         }
 
         var nuevaDieta = _mapper.Map<DietaEntity>(dto);
-        nuevaDieta.Activa = true;
         nuevaDieta.Id_Paciente = paciente.Id_Paciente;
 
         foreach (var comidaDto in dto.Comidas)
         {
             var comidaEnDb = await _context.Comidas.FindAsync(comidaDto.Id_Comida)
-                ?? throw new ResourceNotFoundException($"Comida ID {comidaDto.Id_Comida} no encontrada.");
+                ?? throw new ResourceNotFoundException($"No se encontró la comida con id: {comidaDto.Id_Comida}");
 
             nuevaDieta.DietaComidas.Add(new DietaComidaEntity
             {
                 Comida = comidaEnDb,
                 Cantidad = comidaDto.Cantidad,
-                Horario = comidaDto.Horario,
-                Nota = comidaDto.Nota
+                Es_Permitido = comidaDto.Es_Permitido,
+                Dia = comidaDto.Dia,
+                Momento = comidaDto.Momento
             });
         }
 
@@ -73,7 +76,7 @@ public class DietaService : IDietaService
         return _mapper.Map<DietaResponseDTO>(dieta);
     }
 
-    public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO dto)
+public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO dto)
     {
         var dietaExistente = await _context.Dietas
             .Include(d => d.Paciente)
@@ -83,8 +86,16 @@ public class DietaService : IDietaService
 
         await ValidarAccesoPaciente(dietaExistente.Paciente);
 
-
         _mapper.Map(dto, dietaExistente);
+
+        if (dietaExistente.Activa)
+        {
+            var otrasActivas = await _context.Dietas
+                .Where(d => d.Id_Paciente == dietaExistente.Id_Paciente && d.Id_Dieta != idDieta && d.Activa)
+                .ToListAsync();
+            
+            foreach (var d in otrasActivas) d.Activa = false;
+        }
 
         dietaExistente.DietaComidas.Clear();
 
@@ -97,12 +108,14 @@ public class DietaService : IDietaService
             {
                 Comida = comidaEnDb,
                 Cantidad = comidaDto.Cantidad,
-                Horario = comidaDto.Horario,
-                Nota = comidaDto.Nota
+                Es_Permitido = comidaDto.Es_Permitido,
+                Dia = comidaDto.Dia,
+                Momento = comidaDto.Momento
             });
         }
 
         await _context.SaveChangesAsync();
+        
         return await ObtenerPorId(idDieta);
     }
 
@@ -171,7 +184,6 @@ public class DietaService : IDietaService
 
     public async Task<DietaResponseDTO?> ObtenerDietaActualPublica(string token, string codigo)
     {
-        // 1. Validar Paciente
         var paciente = await _context.Pacientes
             .FirstOrDefaultAsync(p => p.TokenAcceso == token);
 

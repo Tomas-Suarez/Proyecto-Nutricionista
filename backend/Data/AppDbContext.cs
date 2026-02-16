@@ -50,9 +50,6 @@ namespace backend.Data
                 entity.HasOne(dc => dc.Comida)
                       .WithMany()
                       .HasForeignKey(dc => dc.Id_Comida);
-
-                entity.Property(dc => dc.Cantidad).HasPrecision(10, 2);
-                entity.Property(dc => dc.Horario).HasConversion<string>();
             });
 
             modelBuilder.Entity<ComidaEntity>(entity =>
@@ -78,7 +75,6 @@ namespace backend.Data
                       .HasForeignKey(pp => pp.Id_Patologia);
             });
 
-            // B. Tablas Simples (Opcional, para asegurar nombres de tabla)
             modelBuilder.Entity<ObjetivoEntity>().ToTable("Objetivo");
             modelBuilder.Entity<PatologiaEntity>().ToTable("Patologia");
         }

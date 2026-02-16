@@ -23,13 +23,11 @@ public class DietaComidaEntity
     [ForeignKey("Id_Comida")]
     public virtual ComidaEntity Comida { get; set; } = null!;
 
-    [Required]
-    public decimal Cantidad { get; set; }
+    public required string Cantidad { get; set; }
 
-    [Required]
-    [StringLength(50)]
-    public EHorarioComida Horario { get; set; }
+    public bool Es_Permitido { get; set; } = true;
 
-    [StringLength(255)]
-    public string? Nota { get; set; }
+    public int Dia { get; set; }
+
+    public EMomento Momento { get; set; }
 }
