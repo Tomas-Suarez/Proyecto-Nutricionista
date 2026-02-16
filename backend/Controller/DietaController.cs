@@ -1,3 +1,4 @@
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Service;
@@ -53,9 +54,12 @@ public class DietaController : ControllerBase
 
     [Authorize(Roles = nameof(Nutricionista))]
     [HttpGet("paciente/{idPaciente}/historial")]
-    public async Task<ActionResult<IEnumerable<DietaResponseDTO>>> ObtenerHistorial(int idPaciente)
+    public async Task<ActionResult<PagedResponseDTO<DietaResponseDTO>>> ObtenerHistorial(
+        int idPaciente,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 10)
     {
-        var resultado = await _dietaService.ObtenerHistorialPaciente(idPaciente);
+        var resultado = await _dietaService.ObtenerHistorialPaciente(idPaciente, page, size);
         return Ok(resultado);
     }
 
@@ -80,9 +84,9 @@ public class DietaController : ControllerBase
     public async Task<ActionResult<DietaResponseDTO>> ObtenerDietaActivaPublica([FromBody] LoginPacienteDTO credenciales)
     {
         var resultado = await _dietaService.ObtenerDietaActualPublica(credenciales.Token, credenciales.Codigo);
-        
+
         if (resultado == null) return NotFound("El paciente no tiene una dieta activa asignada.");
-        
+
         return Ok(resultado);
     }
 }

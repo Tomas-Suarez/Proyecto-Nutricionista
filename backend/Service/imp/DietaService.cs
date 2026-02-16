@@ -1,5 +1,6 @@
 using AutoMapper;
 using backend.Data;
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Exceptions;
@@ -22,7 +23,7 @@ public class DietaService : IDietaService
         _currentUserService = currentUserService;
     }
 
-public async Task<DietaResponseDTO> CrearDieta(DietaRequestDTO dto)
+    public async Task<DietaResponseDTO> CrearDieta(DietaRequestDTO dto)
     {
         var paciente = await ObtenerPacienteAutorizado(dto.Id_Paciente);
 
@@ -76,7 +77,7 @@ public async Task<DietaResponseDTO> CrearDieta(DietaRequestDTO dto)
         return _mapper.Map<DietaResponseDTO>(dieta);
     }
 
-public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO dto)
+    public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO dto)
     {
         var dietaExistente = await _context.Dietas
             .Include(d => d.Paciente)
@@ -93,7 +94,7 @@ public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO
             var otrasActivas = await _context.Dietas
                 .Where(d => d.Id_Paciente == dietaExistente.Id_Paciente && d.Id_Dieta != idDieta && d.Activa)
                 .ToListAsync();
-            
+
             foreach (var d in otrasActivas) d.Activa = false;
         }
 
@@ -115,7 +116,7 @@ public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO
         }
 
         await _context.SaveChangesAsync();
-        
+
         return await ObtenerPorId(idDieta);
     }
 
@@ -167,19 +168,32 @@ public async Task<DietaResponseDTO> ActualizarDieta(int idDieta, DietaRequestDTO
         return dietaActiva != null ? _mapper.Map<DietaResponseDTO>(dietaActiva) : null;
     }
 
-    public async Task<IEnumerable<DietaResponseDTO>> ObtenerHistorialPaciente(int idPaciente)
+    public async Task<PagedResponseDTO<DietaResponseDTO>> ObtenerHistorialPaciente(int idPaciente, int page, int size)
     {
-        var paciente = await ObtenerPacienteAutorizado(idPaciente);
+        await ObtenerPacienteAutorizado(idPaciente);
 
-        var historial = await _context.Dietas
+        var query = _context.Dietas
             .Include(d => d.Paciente)
             .Include(d => d.DietaComidas)
                 .ThenInclude(dc => dc.Comida)
-            .Where(d => d.Id_Paciente == idPaciente)
+            .Where(d => d.Id_Paciente == idPaciente);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
             .OrderByDescending(d => d.Fecha_Inicio)
+            .Skip((page - 1) * size)
+            .Take(size)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<DietaResponseDTO>>(historial);
+        var dtos = _mapper.Map<IEnumerable<DietaResponseDTO>>(items);
+
+        return new PagedResponseDTO<DietaResponseDTO>(
+            dtos,
+            totalCount,
+            page,
+            size
+        );
     }
 
     public async Task<DietaResponseDTO?> ObtenerDietaActualPublica(string token, string codigo)

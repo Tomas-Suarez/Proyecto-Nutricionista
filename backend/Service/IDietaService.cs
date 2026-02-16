@@ -1,3 +1,4 @@
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 
@@ -13,8 +14,8 @@ public interface IDietaService
 
     Task<DietaResponseDTO> ObtenerPorId(int idDieta);
 
-    Task<IEnumerable<DietaResponseDTO>> ObtenerHistorialPaciente(int idPaciente);
-
+    Task<PagedResponseDTO<DietaResponseDTO>> ObtenerHistorialPaciente(int idPaciente, int page, int size);
+    
     Task<DietaResponseDTO?> ObtenerDietaActiva(int idPaciente);
 
     Task ActivarDieta(int idDieta);
