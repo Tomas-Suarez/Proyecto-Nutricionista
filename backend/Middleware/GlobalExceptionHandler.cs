@@ -23,7 +23,8 @@ public class GlobalExceptionHandler : IExceptionHandler
             { typeof(SessionExpiredException), HttpStatusCode.Unauthorized },
             { typeof(BadRequestException), HttpStatusCode.BadRequest},
             { typeof(AccessDeniedException), HttpStatusCode.Forbidden},
-            { typeof(UnauthenticatedException), HttpStatusCode.Unauthorized}
+            { typeof(UnauthenticatedException), HttpStatusCode.Unauthorized},
+            { typeof(ConflictException), HttpStatusCode.Conflict}
         };
     }
 

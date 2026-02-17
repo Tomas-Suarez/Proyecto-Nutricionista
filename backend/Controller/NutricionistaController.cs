@@ -43,4 +43,25 @@ public class NutricionistaController : ControllerBase
         var resultado = await _nutricionistaService.ModificarMiPerfil(dto);
         return Ok(resultado);
     }
+
+    [HttpPost("subir-pdf")]
+    public async Task<ActionResult<ArchivoResponseDTO>> SubirPdf([FromForm] SubirPdfRequestDTO dto)
+    {
+        var result = await _nutricionistaService.SubirPdf(dto);
+        return Ok(result);
+    }
+
+    [HttpGet("mis-archivos")]
+    public async Task<ActionResult<List<ArchivoResponseDTO>>> GetMisArchivos()
+    {
+        var result = await _nutricionistaService.ObtenerMisArchivos();
+        return Ok(result);
+    }
+
+    [HttpDelete("archivo/{id}")]
+    public async Task<IActionResult> EliminarArchivo(int id)
+    {
+        await _nutricionistaService.EliminarArchivo(id);
+        return NoContent();
+    }
 }

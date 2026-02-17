@@ -22,6 +22,8 @@ namespace backend.Data
         public DbSet<PatologiaEntity> Patologias { get; set; }
         public DbSet<PatologiaPacienteEntity> PatologiaPacientes { get; set; }
 
+        public DbSet<ArchivoNutricionistaEntity> ArchivosNutricionistas { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -63,7 +65,7 @@ namespace backend.Data
             modelBuilder.Entity<PatologiaPacienteEntity>(entity =>
             {
                 entity.ToTable("Patologia_Paciente");
-                
+
                 entity.HasKey(pp => new { pp.Id_Paciente, pp.Id_Patologia });
 
                 entity.HasOne(pp => pp.Paciente)
@@ -74,6 +76,17 @@ namespace backend.Data
                       .WithMany()
                       .HasForeignKey(pp => pp.Id_Patologia);
             });
+
+            modelBuilder.Entity<ArchivoNutricionistaEntity>(entity =>
+    {
+                entity.ToTable("Archivo_Nutricionista");
+                entity.HasKey(e => e.Id_Archivo);
+
+                entity.HasOne(e => e.Nutricionista)
+                    .WithMany()
+                    .HasForeignKey(e => e.Id_Nutricionista)
+                    .OnDelete(DeleteBehavior.Cascade);
+                });
 
             modelBuilder.Entity<ObjetivoEntity>().ToTable("Objetivo");
             modelBuilder.Entity<PatologiaEntity>().ToTable("Patologia");
