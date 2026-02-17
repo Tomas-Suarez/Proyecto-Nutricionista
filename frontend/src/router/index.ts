@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
+import MisDocumentosView from "../views/MisDocumentosView.vue";
+
 import AppLayout from "../layouts/AppLayout.vue";
 import { useAuthStore } from "../stores/authStores";
 
@@ -69,6 +71,11 @@ const router = createRouter({
           name: "objetivos",
           component: () => import("../views/admin/AdminObjetivosView.vue"),
         },
+        {
+          path: 'archivos',
+          name: 'mis-documentos',
+          component: MisDocumentosView,
+        },
       ],
     },
 
@@ -92,7 +99,7 @@ router.beforeEach(async (to, _from, next) => {
     if (!authStore.estaAutenticado) {
       try {
         await authStore.verificarSesion();
-      } catch (error) {}
+      } catch (error) { }
     }
 
     if (authStore.estaAutenticado) {

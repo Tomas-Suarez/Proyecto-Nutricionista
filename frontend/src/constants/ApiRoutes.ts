@@ -23,13 +23,16 @@ export abstract class ApiRoutes {
       return url;
     },
     CambiarEstado: (id: number) => `/Paciente/${id}/estado`,
-    ObtenerPorId: (id: number) => `/paciente/${id}`,
+    ObtenerPorId: (id: number) => `/Paciente/${id}`,
   };
 
   public static readonly Nutricionista = {
     Registrar: `/Nutricionista`,
     ObtenerMiPerfil: `/Nutricionista/me`, //GET
     ModificarMiPerfil: `/Nutricionista/me`, //PUT
+    MisArchivos: `/Nutricionista/mis-archivos`,
+    EliminarArchivo: (id: number) => `/Nutricionista/archivo/${id}`, //DELETE
+    SubirPdf: `/Nutricionista/subir-pdf`,
   };
 
   public static readonly Pesaje = {
