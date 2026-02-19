@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
-import MisDocumentosView from "../views/MisDocumentosView.vue";
-
+import AccesoPacienteView from "../views/AccesoPacienteView.vue"; 
 import AppLayout from "../layouts/AppLayout.vue";
 import { useAuthStore } from "../stores/authStores";
 
@@ -20,6 +19,12 @@ const router = createRouter({
       name: "registro",
       component: RegisterView,
       meta: { requiresAuth: false },
+    },
+    {
+      path: "/acceso/:token",
+      name: "acceso-paciente",
+      component: AccesoPacienteView,
+      meta: { requiresAuth: false }
     },
 
     {
@@ -72,9 +77,9 @@ const router = createRouter({
           component: () => import("../views/admin/AdminObjetivosView.vue"),
         },
         {
-          path: 'archivos',
-          name: 'mis-documentos',
-          component: MisDocumentosView,
+            path: "archivos",
+            name: "archivos",
+            component: () => import("../views/MisDocumentosView.vue"),
         },
       ],
     },
@@ -99,7 +104,10 @@ router.beforeEach(async (to, _from, next) => {
     if (!authStore.estaAutenticado) {
       try {
         await authStore.verificarSesion();
-      } catch (error) { }
+      } catch (error) {
+        next("/login");
+        return; 
+      }
     }
 
     if (authStore.estaAutenticado) {

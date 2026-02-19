@@ -1,6 +1,8 @@
-// ... importaciones
+import type { ArchivoResponseDTO } from "./ArchivoResponseDTO";
+import type { DietaResponseDTO } from "./DietaResponseDTO";
 import type { ObjetivoResponseDTO } from "./ObjetivoResponseDTO";
 import type { PatologiaResponseDTO } from "./PatologiaResponseDTO";
+import type { PesajeResponseDTO } from "./PesajeResponseDTO";
 
 export interface PacienteResponseDTO {
     id_Paciente: number;
@@ -21,4 +23,8 @@ export interface PacienteResponseDTO {
     
     objetivo?: ObjetivoResponseDTO;
     patologias: PatologiaResponseDTO[];
+
+    ArchivosNutricionista: ArchivoResponseDTO[];
+    HistorialPeso: PesajeResponseDTO[];
+    DietaActual?: DietaResponseDTO;
 }

@@ -99,7 +99,6 @@ import { useAuthStore } from '../stores/authStores';
 import Breadcrumb from 'primevue/breadcrumb';
 import 'primeicons/primeicons.css'
 
-const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const isCollapsed = ref(false);

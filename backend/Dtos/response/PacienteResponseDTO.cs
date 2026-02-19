@@ -16,5 +16,9 @@ public record PacienteResponseDTO(
     decimal PesoActual,
     decimal Imc,
     ObjetivoResponseDTO? Objetivo, 
-    List<PatologiaResponseDTO> Patologias
+    List<PatologiaResponseDTO> Patologias,
+
+    List<ArchivoResponseDTO>? ArchivosNutricionista = null,
+    List<PesajeResponseDTO>? HistorialPeso = null,
+    DietaResponseDTO? DietaActual = null
 );

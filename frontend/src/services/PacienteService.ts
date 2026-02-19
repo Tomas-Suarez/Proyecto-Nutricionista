@@ -52,4 +52,12 @@ async obtenerPacientesPorNutricionista(
     );
     return response.data;
   },
+
+  async acceder(token: string, codigo: string): Promise<PacienteResponseDTO> {
+    const response = await apiClient.post<PacienteResponseDTO>(
+      ApiRoutes.Paciente.AccederPublico, 
+      { token, codigo }
+    );
+    return response.data;
+  },
 };

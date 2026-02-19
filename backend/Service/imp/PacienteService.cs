@@ -202,6 +202,7 @@ public class PacienteService : IPacienteService
         var paciente = await _context.Pacientes
             .Include(p => p.Objetivo)
             .Include(p => p.PatologiaPacientes).ThenInclude(pp => pp.Patologia)
+            .Include(p => p.Pesajes)
             .FirstOrDefaultAsync(p => p.TokenAcceso == token);
 
         if (paciente == null)
@@ -214,7 +215,53 @@ public class PacienteService : IPacienteService
             throw new AccessDeniedException("El código de acceso es incorrecto.");
         }
 
-        return _pacienteMapper.Map<PacienteResponseDTO>(paciente);
+        var baseResponse = _pacienteMapper.Map<PacienteResponseDTO>(paciente);
+
+        var archivos = await _context.ArchivosNutricionistas
+            .Where(a => a.Id_Nutricionista == paciente.Id_Nutricionista)
+            .Select(a => new ArchivoResponseDTO(
+                a.Id_Archivo,
+                a.NombreArchivo,
+                a.RutaAcceso,
+                a.FechaSubida
+            ))
+            .ToListAsync();
+
+        var historialEntities = await _context.Pesajes
+            .Where(p => p.Id_Paciente == paciente.Id_Paciente)
+            .OrderBy(p => p.Fecha_Pesaje)
+            .ToListAsync();
+
+        var historialDto = historialEntities.Select(p => new PesajeResponseDTO(
+            p.Id_Pesaje,
+            p.Id_Paciente,
+            p.Peso_Kg,
+            p.Porcentaje_Grasa,
+            p.Masa_Muscular_Kg,
+            p.Fecha_Pesaje,
+            p.Nota,
+            0,
+            EIMC.Peso_Normal,
+            0
+        )).ToList();
+
+        var dietaEntity = await _context.Dietas
+            .Include(d => d.DietaComidas)
+                .ThenInclude(dc => dc.Comida)
+            .FirstOrDefaultAsync(d => d.Id_Paciente == paciente.Id_Paciente && d.Activa);
+
+        DietaResponseDTO? dietaDto = null;
+        if (dietaEntity != null)
+        {
+            dietaDto = _pacienteMapper.Map<DietaResponseDTO>(dietaEntity);
+        }
+
+        return baseResponse with
+        {
+            ArchivosNutricionista = archivos,
+            HistorialPeso = historialDto,
+            DietaActual = dietaDto
+        };
     }
 
     public async Task<PacienteResponseDTO> ObtenerPorId(int idPaciente)
@@ -223,6 +270,7 @@ public class PacienteService : IPacienteService
             .Include(p => p.Objetivo)
             .Include(p => p.PatologiaPacientes)
                 .ThenInclude(pp => pp.Patologia)
+                .Include(p => p.Pesajes)
             .FirstOrDefaultAsync(p => p.Id_Paciente == idPaciente)
             ?? throw new ResourceNotFoundException($"No se encontró paciente con el id: {idPaciente}");
 
@@ -249,4 +297,6 @@ public class PacienteService : IPacienteService
             throw new AccessDeniedException("No tienes permiso para operar sobre este paciente.");
         }
     }
+
+
 }
