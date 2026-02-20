@@ -17,10 +17,15 @@ export const PesajeService = {
     idPaciente: number,
     page: number = 1,
     size: number = 10,
+    dias?: number,
   ): Promise<PagedResponse<PesajeResponseDTO>> {
-    const response = await apiClient.get<PagedResponse<PesajeResponseDTO>>(
-      ApiRoutes.Pesaje.ObtenerHistorialPorPaciente(idPaciente, page, size),
-    );
+    let url = ApiRoutes.Pesaje.ObtenerHistorialPorPaciente(idPaciente, page, size);
+
+    if (dias) {
+      url += `&dias=${dias}`;
+    }
+
+    const response = await apiClient.get<PagedResponse<PesajeResponseDTO>>(url);
     return response.data;
   },
 

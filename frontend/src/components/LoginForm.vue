@@ -5,6 +5,10 @@
     </template>
     
     <template #content>
+      <Message v-if="errorMessage" severity="error" :closable="false" class="mb-4">
+        {{ errorMessage }}
+      </Message>
+
       <Form 
         v-slot="$form"
         :resolver="resolver"
@@ -70,7 +74,11 @@ import Password from 'primevue/password';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
 
-defineProps<{ loading: boolean }>();
+defineProps<{ 
+  loading: boolean;
+  errorMessage?: string;
+}>();
+
 const emit = defineEmits(['submit']);
 
 const initialValues = ref({ email: '', password: '' });

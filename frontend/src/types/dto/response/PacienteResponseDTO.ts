@@ -5,24 +5,24 @@ import type { PatologiaResponseDTO } from "./PatologiaResponseDTO";
 import type { PesajeResponseDTO } from "./PesajeResponseDTO";
 
 export interface PacienteResponseDTO {
-    id_Paciente: number;
-    nombre: string;
-    apellido: string;
-    dni: string;
-    email: string;
-    telefono?: string;
-    genero?: string;
-    peso_Inicial: number;
-    altura_Cm: number;
-    estado: string;
-    tokenAcceso?: string;
-    codigoAcceso?: string;
+    Id_Paciente: number;
+    Nombre: string;
+    Apellido: string;
+    Dni: string;
+    Email: string;
+    Telefono?: string;
+    Genero?: string;
+    Peso_Inicial: number;
+    Altura_Cm: number;
+    Estado: string;
+    TokenAcceso?: string;
+    CodigoAcceso?: string;
     
-    pesoActual: number;
-    imc: number;
+    PesoActual: number;
+    Imc: number;
     
-    objetivo?: ObjetivoResponseDTO;
-    patologias: PatologiaResponseDTO[];
+    Objetivo?: ObjetivoResponseDTO;
+    Patologias: PatologiaResponseDTO[];
 
     ArchivosNutricionista: ArchivoResponseDTO[];
     HistorialPeso: PesajeResponseDTO[];

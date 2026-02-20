@@ -48,10 +48,11 @@ public class PesajeController : ControllerBase
     [HttpGet("historial/{idPaciente}")]
     public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerHistorialPaciente(
         int idPaciente,
+        [FromQuery] int? dias,
         [FromQuery] int page = 1,
         [FromQuery] int size = 10)
     {
-        var historial = await _pesajeService.ObtenerHistorialPorPaciente(idPaciente, page, size);
+        var historial = await _pesajeService.ObtenerHistorialPorPaciente(idPaciente, page, size, dias);
         return Ok(historial);
     }
 
@@ -59,14 +60,16 @@ public class PesajeController : ControllerBase
     [HttpPost("publico/historial")]
     public async Task<ActionResult<PagedResponseDTO<PesajeResponseDTO>>> ObtenerHistorialPublico(
         [FromBody] LoginPacienteDTO credenciales,
+        [FromQuery] int? dias,
         [FromQuery] int page = 1,
         [FromQuery] int size = 10)
     {
         var historial = await _pesajeService.ObtenerHistorialPublico(
-            credenciales.Token, 
-            credenciales.Codigo, 
-            page, 
-            size
+            credenciales.Token,
+            credenciales.Codigo,
+            page,
+            size,
+            dias
         );
         return Ok(historial);
     }

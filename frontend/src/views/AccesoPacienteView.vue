@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 
 import { useAuthStore } from '../stores/authStores';
-import apiClient from '../services/ApiClient';
 import type { PacienteResponseDTO } from '../types/dto/response/PacienteResponseDTO';
 
 import DietaPdf from '../components/dieta/DietaPdf.vue';
@@ -13,6 +12,8 @@ import html2pdf from 'html2pdf.js';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Chart from 'primevue/chart';
+import Select from 'primevue/select';
+import { PublicPacienteService } from '../services/PublicPacienteService';
 
 const route = useRoute();
 const toast = useToast();
@@ -24,6 +25,14 @@ const paciente = ref<PacienteResponseDTO | null>(null);
 const tokenUrl = ref('');
 
 const loadingPdf = ref(false);
+
+const filtroDias = ref<number | null>(null);
+const opcionesFiltro = ref([
+    { label: 'Todo el historial', value: null },
+    { label: 'Últimos 30 días', value: 30 },
+    { label: 'Últimos 60 días', value: 60 },
+    { label: 'Últimos 90 días', value: 90 }
+]);
 
 onMounted(() => {
     if (authStore.estaAutenticado) {
@@ -37,13 +46,12 @@ const acceder = async () => {
     if (!codigo.value) return;
     loading.value = true;
     try {
-        const res = await apiClient.post<PacienteResponseDTO>('/Paciente/acceder', {
-            token: tokenUrl.value,
-            codigo: codigo.value
-        });
-        paciente.value = res.data;
-        const nombreReal = (res.data as any).Nombre || res.data.nombre;
-        toast.add({ severity: 'success', summary: 'Bienvenido', detail: `Hola ${nombreReal}`, life: 3000 });
+        const data = await PublicPacienteService.acceder(tokenUrl.value, codigo.value);
+        
+        paciente.value = data; 
+        
+        const nombreCompleto = `${data.Nombre} ${data.Apellido}`
+        toast.add({ severity: 'success', summary: 'Bienvenido', detail: `Hola ${nombreCompleto}`, life: 3000 });
     } catch (error) {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Código incorrecto o enlace inválido.', life: 3000 });
     } finally {
@@ -57,11 +65,11 @@ const getDownloadUrl = (ruta: string) => {
 };
 
 const nombreMostrado = computed(() => {
-    return (paciente.value as any)?.Nombre || paciente.value?.nombre || '';
+    return paciente.value?.Nombre +" "+ paciente.value?.Apellido
 });
 
 const pesoActualMostrado = computed(() => {
-    return (paciente.value as any)?.PesoActual || paciente.value?.pesoActual || '-';
+    return (paciente.value as any)?.PesoActual || paciente.value?.PesoActual || '-';
 });
 
 const chartData = computed(() => {
@@ -69,7 +77,20 @@ const chartData = computed(() => {
         return { labels: [], datasets: [] };
     }
 
-    const datos = [...paciente.value.HistorialPeso].sort((a, b) => {
+    let datos = [...paciente.value.HistorialPeso];
+
+    if (filtroDias.value !== null) {
+        const hoy = new Date();
+        const limite = new Date();
+        limite.setDate(hoy.getDate() - filtroDias.value);
+
+        datos = datos.filter(p => {
+            const fecha = new Date((p as any).Fecha_Pesaje || p.fecha_Pesaje);
+            return fecha >= limite && fecha <= hoy; 
+        });
+    }
+
+    datos.sort((a, b) => {
         const fechaA = (a as any).Fecha_Pesaje || a.fecha_Pesaje;
         const fechaB = (b as any).Fecha_Pesaje || b.fecha_Pesaje;
         return new Date(fechaA).getTime() - new Date(fechaB).getTime();
@@ -232,17 +253,29 @@ const generarPDF = async () => {
                 <div class="col-lg-8 d-flex flex-column gap-4">
 
                     <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                        
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="fw-bold m-0 text-main"><i class="pi pi-chart-line text-accent me-2"></i>Evolución
                                 de Peso</h5>
+                            
+                            <Select 
+                                v-model="filtroDias" 
+                                :options="opcionesFiltro" 
+                                optionLabel="label" 
+                                optionValue="value" 
+                                placeholder="Filtrar periodo" 
+                                class="p-inputtext-sm"
+                            />
                         </div>
+
                         <div style="height: 300px;">
-                            <Chart v-if="paciente.HistorialPeso && paciente.HistorialPeso.length > 0" type="line"
+                            <Chart v-if="chartData.labels.length > 0" type="line"
                                 :data="chartData" :options="chartOptions" class="h-100 w-100" />
                             <div v-else
                                 class="h-100 d-flex flex-column justify-content-center align-items-center text-muted">
                                 <i class="pi pi-chart-bar mb-2" style="font-size: 2rem;"></i>
-                                <p>Aún no hay registros de peso.</p>
+                                <p v-if="paciente.HistorialPeso && paciente.HistorialPeso.length > 0">No hay registros en este periodo.</p>
+                                <p v-else>Aún no hay registros de peso.</p>
                             </div>
                         </div>
                     </div>

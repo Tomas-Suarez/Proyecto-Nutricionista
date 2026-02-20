@@ -62,7 +62,7 @@ public class PesajeService : IPesajeService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerHistorialPorPaciente(int idPaciente, int page, int size)
+    public async Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerHistorialPorPaciente(int idPaciente, int page, int size, int? dias = null)
     {
         if (!_currentUserService.IsNutricionista() && !_currentUserService.IsAdmin())
         {
@@ -71,10 +71,10 @@ public class PesajeService : IPesajeService
 
         await ObtenerPacienteAutorizado(idPaciente);
 
-        return await ConsultarPesajesPaginados(idPaciente, page, size);
+        return await ConsultarPesajesPaginados(idPaciente, page, size, dias);
     }
 
-    public async Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerHistorialPublico(string token, string codigo, int page, int size)
+    public async Task<PagedResponseDTO<PesajeResponseDTO>> ObtenerHistorialPublico(string token, string codigo, int page, int size, int? dias = null)
     {
         var paciente = await _context.Pacientes
             .FirstOrDefaultAsync(p => p.TokenAcceso == token);
@@ -89,7 +89,7 @@ public class PesajeService : IPesajeService
             throw new AccessDeniedException("El código de acceso es incorrecto.");
         }
 
-        return await ConsultarPesajesPaginados(paciente.Id_Paciente, page, size);
+        return await ConsultarPesajesPaginados(paciente.Id_Paciente, page, size, dias);
     }
 
     public async Task<PesajeResponseDTO> ObtenerPesajePorId(int idPesaje)
@@ -158,11 +158,19 @@ public class PesajeService : IPesajeService
         throw new AccessDeniedException("No tienes permiso para realizar esta acción.");
     }
 
-    private async Task<PagedResponseDTO<PesajeResponseDTO>> ConsultarPesajesPaginados(int idPaciente, int page, int size)
+    private async Task<PagedResponseDTO<PesajeResponseDTO>> ConsultarPesajesPaginados(int idPaciente, int page, int size, int? dias = null)
     {
         var query = _context.Pesajes
             .Where(p => p.Id_Paciente == idPaciente)
-            .OrderByDescending(p => p.Fecha_Pesaje);
+            .AsQueryable();
+
+        if (dias.HasValue)
+        {
+            var fechaLimite = DateTime.UtcNow.AddDays(-dias.Value);
+            query = query.Where(p => p.Fecha_Pesaje >= fechaLimite);
+        }
+
+        query = query.OrderByDescending(p => p.Fecha_Pesaje);
 
         var totalRegistros = await query.CountAsync();
 
@@ -179,7 +187,6 @@ public class PesajeService : IPesajeService
             if (i + 1 < pesajesDto.Count)
             {
                 decimal diferencia = pesajesDto[i].Peso_Kg - pesajesDto[i + 1].Peso_Kg;
-
                 pesajesDto[i] = pesajesDto[i] with { DiferenciaPesoAnterior = diferencia };
             }
         }

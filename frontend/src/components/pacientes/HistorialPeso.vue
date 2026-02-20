@@ -10,13 +10,14 @@ import PacienteCard from '../PacienteCard.vue';
 import Chart from 'primevue/chart';
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
-import Calendar from 'primevue/calendar';
+import DatePicker from 'primevue/datepicker';
 import Textarea from 'primevue/textarea';
 import Card from 'primevue/card';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Tag from 'primevue/tag';
 import Divider from 'primevue/divider';
+import Select from 'primevue/select';
 
 const props = defineProps<{
     paciente: any; 
@@ -29,6 +30,16 @@ const loading = ref(false);
 const enviando = ref(false);
 const chartKey = ref(0);
 
+const filtroDias = ref<number | null>(60);
+const opcionesFiltro = ref([
+    { label: 'Todo el historial', value: null },
+    { label: 'Últimos 30 días', value: 30 },
+    { label: 'Últimos 60 días', value: 60 },
+    { label: 'Últimos 90 días', value: 90 }
+]);
+const paginaActual = ref(1);
+const tamanioPagina = ref(50);
+
 const form = ref({
     peso: null as number | null,
     fecha: new Date(),
@@ -37,12 +48,16 @@ const form = ref({
     nota: ''
 });
 
-
 const cargarHistorial = async () => {
     if (!props.paciente || !props.paciente.Id_Paciente) return;
     loading.value = true;
     try {
-        const res = await PesajeService.obtenerHistorialPorPaciente(props.paciente.Id_Paciente, 1, 50);
+        const res = await PesajeService.obtenerHistorialPorPaciente(
+            props.paciente.Id_Paciente, 
+            paginaActual.value, 
+            tamanioPagina.value,
+            filtroDias.value || undefined
+        );
         let datos = (res as any).Items || (res as any).items || (res as any).data || res;
         if (Array.isArray(datos)) {
             historial.value = datos;
@@ -151,7 +166,7 @@ const guardarPesaje = async () => {
                             <Divider class="my-0"/>
                             <div>
                                 <label class="small fw-bold mb-1">Fecha</label>
-                                <Calendar v-model="form.fecha" showIcon dateFormat="dd/mm/yy" class="w-100 p-inputtext-sm" />
+                                <DatePicker v-model="form.fecha" showIcon dateFormat="dd/mm/yy" class="w-100 p-inputtext-sm" />
                             </div>
                             
                             <div class="row g-2">
@@ -182,9 +197,26 @@ const guardarPesaje = async () => {
             <div class="col-lg-8">
                 <Card class="shadow-sm border-0 h-100">
                     <template #content>
-                        <div style="height: 250px;" class="mb-4">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="text-primary fw-bold mb-0">EVOLUCIÓN DE PESO</h6>
-                            <Chart type="line" :data="chartData" :options="chartOptions" :key="chartKey" class="h-100 w-100" />
+                            <Select 
+                                v-model="filtroDias" 
+                                :options="opcionesFiltro" 
+                                optionLabel="label" 
+                                optionValue="value" 
+                                placeholder="Filtrar periodo" 
+                                class="p-inputtext-sm"
+                                @change="cargarHistorial" 
+                            />
+                        </div>
+
+                        <div style="height: 250px;" class="mb-4">
+                            <Chart v-if="historial.length > 0" type="line" :data="chartData" :options="chartOptions" :key="chartKey" class="h-100 w-100" />
+                            <div v-else class="h-100 w-100 d-flex align-items-center justify-content-center text-muted">
+                                <span v-if="loading">Cargando gráfico...</span>
+                                <span v-else>No hay pesajes suficientes en este periodo.</span>
+                            </div>
                         </div>
                         
                         <Divider />

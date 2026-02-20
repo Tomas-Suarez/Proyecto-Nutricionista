@@ -3,6 +3,7 @@
     
     <LoginForm 
       :loading="loading" 
+      :error-message="errorMessage"
       @submit="handleLogin" 
     />
 
@@ -19,14 +20,25 @@ import LoginForm from '../components/LoginForm.vue';
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
+const errorMessage = ref('');
 
 const handleLogin = async (credenciales: UsuarioRequestDTO) => {
   loading.value = true;
+  errorMessage.value = '';
+
   try {
     await authStore.login(credenciales);
     router.push('/dashboard');
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error de login:", error);
+    
+    if (error.response?.data?.detail) {
+      errorMessage.value = error.response.data.detail;
+    } else if (error.response?.data?.message) {
+      errorMessage.value = error.response.data.message;
+    } else {
+      errorMessage.value = 'Credenciales incorrectas o error en el servidor.';
+    }
   } finally {
     loading.value = false;
   }
