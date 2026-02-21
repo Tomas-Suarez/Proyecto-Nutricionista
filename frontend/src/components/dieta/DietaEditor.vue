@@ -132,7 +132,6 @@ const cargarDietaExistente = async (id: number) => {
         listaComidas.forEach((dc: any) => {
             const dia = Number(dc.dia !== undefined ? dc.dia : dc.Dia);
             
-            // LA CLAVE: El nombre de categoría que guardamos específicamente para este alimento en esta dieta
             const nombreCatGuardado = dc.nombreCategoria || dc.NombreCategoria;
 
             const itemConDetalle = { 
@@ -143,7 +142,6 @@ const cargarDietaExistente = async (id: number) => {
             };
 
             if (dia === 0) {
-                // Buscamos el grupo que coincida con el nombre que guardó el usuario
                 const grupo = planGrupos.value.find(g => g.nombre === nombreCatGuardado);
 
                 if (grupo) {
@@ -224,7 +222,6 @@ const onDropClasificacion = (evt: DragEvent, esPermitido: boolean) => {
 
         if (obtenerEstado(alimento.id_Comida)) return;
 
-        // Aquí capturamos la categoría de la columna actual
         const nuevoItem = { 
             ...alimento, 
             detalle: '', 
@@ -271,7 +268,6 @@ const guardar = async () => {
     loading.value = true;
     const listaComidas: DietaComidaRequestDTO[] = [];
 
-    // GRUPOS: Aquí nos aseguramos de mandar el nombre de la columna actual
     planGrupos.value.forEach(grupo => {
         grupo.permitidos.forEach((item: any) => {
             listaComidas.push({ 

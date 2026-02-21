@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
 import { ComidaService } from '../../services/ComidaService';
 import { CategoriaService } from '../../services/CategoriaService';
+import { useAuthStore } from '../../stores/authStores';
 import type { ComidaResponseDTO } from '../../types/dto/response/ComidaResponseDTO';
 import type { CategoriaResponseDTO } from '../../types/dto/response/CategoriaResponseDTO';
 
@@ -18,6 +19,9 @@ import Tag from 'primevue/tag';
 
 const toast = useToast();
 const confirm = useConfirm();
+const authStore = useAuthStore();
+
+const esAdmin = computed(() => authStore.rolUsuario?.toString() === 'Admin');
 
 const comidas = ref<ComidaResponseDTO[]>([]);
 const categoriasDisponibles = ref<CategoriaResponseDTO[]>([]);
@@ -28,6 +32,9 @@ const lazyParams = ref({
     page: 0,
     rows: 10
 });
+
+const terminoBusqueda = ref('');
+const timeoutBusqueda = ref<any>(null);
 
 const dialogoVisible = ref(false);
 const enviando = ref(false);
@@ -53,7 +60,12 @@ const cargarComidas = async () => {
         const pageNumber = lazyParams.value.page + 1;
         const pageSize = lazyParams.value.rows;
 
-        const response = await ComidaService.obtenerTodas(pageNumber, pageSize);
+        const response = await ComidaService.obtenerTodas(
+            pageNumber, 
+            pageSize, 
+            undefined,
+            terminoBusqueda.value
+        );
 
         // @ts-ignore
         comidas.value = response.Content || response.Items || [];
@@ -65,6 +77,15 @@ const cargarComidas = async () => {
     } finally {
         cargando.value = false;
     }
+};
+
+const onInputBusqueda = () => {
+    if (timeoutBusqueda.value) clearTimeout(timeoutBusqueda.value);
+    
+    timeoutBusqueda.value = setTimeout(() => {
+        lazyParams.value.page = 0;
+        cargarComidas();
+    }, 1500);
 };
 
 const cargarCategorias = async () => {
@@ -154,11 +175,6 @@ const guardar = async () => {
 
     } catch (error: any) {
         if (error.response?.data?.errors) {
-            const errores = error.response.data.errors as Record<string, string[]>;
-            const keys = Object.keys(errores);
-
-            if (keys.length > 0) {
-            }
         } else {
             const msg = error.response?.data?.detail || 'Error al guardar';
             toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
@@ -189,11 +205,24 @@ const confirmarEliminar = (item: ComidaResponseDTO) => {
 
 <template>
     <div>
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <h4 class="fw-bold text-primary m-0">
                 <i class="pi pi-apple me-2"></i>Gestión de Comidas
             </h4>
-            <Button label="Nueva Comida" icon="pi pi-plus" rounded @click="abrirCrear" />
+            
+            <div class="d-flex gap-2">
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText 
+                        v-model="terminoBusqueda" 
+                        placeholder="Buscar comida..." 
+                        @input="onInputBusqueda" 
+                        class="p-inputtext-sm" 
+                        style="width: 250px;" 
+                    />
+                </span>
+                <Button v-if="esAdmin" label="Nueva Comida" icon="pi pi-plus" rounded @click="abrirCrear" />
+            </div>
         </div>
 
         <DataTable :value="comidas" :lazy="true" :paginator="true" :rows="lazyParams.rows" :totalRecords="totalRecords"
@@ -223,7 +252,7 @@ const confirmarEliminar = (item: ComidaResponseDTO) => {
                 </template>
             </Column>
 
-            <Column header="Acciones" style="width: 15%; text-align: center">
+            <Column v-if="esAdmin" header="Acciones" style="width: 15%; text-align: center">
                 <template #body="{ data }">
                     <Button icon="pi pi-pencil" text rounded severity="info" @click="abrirEditar(data)" />
                     <Button icon="pi pi-trash" text rounded severity="danger" @click="confirmarEliminar(data)" />

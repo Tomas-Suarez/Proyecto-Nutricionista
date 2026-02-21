@@ -38,12 +38,16 @@ async obtenerPacientesPorNutricionista(
     return response.data;
   },
 
-  async cambiarEstado(
+async cambiarEstado(
     idPaciente: number,
     nuevoEstado: EEstadoPaciente,
   ): Promise<void> {
     const url = ApiRoutes.Paciente.CambiarEstado(idPaciente);
-    await apiClient.patch(url, { nuevoEstado });
+    await apiClient.patch(url, JSON.stringify(nuevoEstado), {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
   },
 
   async obtenerPorId(id: number): Promise<PacienteResponseDTO> {

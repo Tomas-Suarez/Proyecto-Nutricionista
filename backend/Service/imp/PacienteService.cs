@@ -157,6 +157,7 @@ public class PacienteService : IPacienteService
             .Include(p => p.Objetivo)
             .Include(p => p.PatologiaPacientes)
                 .ThenInclude(pp => pp.Patologia)
+                .Include(p => p.Pesajes)
             .Where(p => p.Id_Nutricionista == nutricionistaId);
 
         if (!string.IsNullOrWhiteSpace(busqueda))

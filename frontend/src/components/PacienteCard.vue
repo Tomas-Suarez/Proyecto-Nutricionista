@@ -8,15 +8,11 @@ const props = defineProps<{
 }>();
 
 const datosImc = computed(() => {
-    const peso = props.paciente.Peso_Actual || props.paciente.Peso_Inicial;
-    const altura = props.paciente.Altura_Cm;
+    const imc = props.paciente.Imc;
 
-    if (!peso || !altura) {
+    if (!imc || imc === 0) {
         return { valor: '--', etiqueta: 'Sin datos', color: 'text-muted' };
     }
-
-    const alturaM = altura / 100;
-    const imc = peso / (alturaM * alturaM);
     
     let clasificacion = 'Normal';
     let color = 'text-success';
@@ -26,7 +22,7 @@ const datosImc = computed(() => {
     else if (imc >= 30) { clasificacion = 'Obesidad'; color = 'text-danger'; }
 
     return { 
-        valor: imc.toFixed(1), 
+        valor: imc.toFixed(1),
         etiqueta: clasificacion, 
         color: color 
     };

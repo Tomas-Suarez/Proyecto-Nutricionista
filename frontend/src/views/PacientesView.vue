@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { PacienteService } from '../services/PacienteService';
 import type { PacienteResponseDTO } from '../types/dto/response/PacienteResponseDTO';
+import { EEstadoPaciente } from '../types/enum/EEstadoPaciente';
 import type { DataTablePageEvent } from 'primevue/datatable';
+import { useToast } from 'primevue/usetoast';
 
 import TablaPacientes from '../components/nutricionista/TablaPacientes.vue';
 import RegistroPacienteForm from '../components/nutricionista/RegistroPacienteForm.vue';
@@ -21,6 +23,8 @@ const mostrarModal = ref(false);
 const mostrarPesajes = ref(false);
 const mostrarDieta = ref(false);
 const pacienteSeleccionado = ref<PacienteResponseDTO | null>(null);
+
+const toast = useToast();
 
 const cargarPacientes = async (page: number = 1, size: number = 10, search: string = '') => {
     loading.value = true;
@@ -77,14 +81,32 @@ const abrirDieta = (id: number) => {
     }
 };
 
+const handleCambiarEstado = async (paciente: PacienteResponseDTO) => {
+    try {
+        const nuevoEstado = (paciente.Estado === 'Activo' || paciente.Estado === EEstadoPaciente.Activo.toString()) 
+            ? EEstadoPaciente.Inactivo 
+            : EEstadoPaciente.Activo;
+            
+        await PacienteService.cambiarEstado(paciente.Id_Paciente, nuevoEstado);
+        toast.add({ severity: 'success', summary: 'Éxito', detail: 'Estado actualizado correctamente', life: 3000 });
+        
+        const currentPage = Math.floor(first.value / rows.value) + 1;
+        cargarPacientes(currentPage, rows.value, busquedaActual.value);
+    } catch (error) {
+        console.error(error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cambiar el estado', life: 3000 });
+    }
+};
+
 const alGuardar = () => {
     mostrarModal.value = false;
-    cargarPacientes(1, rows.value, busquedaActual.value);
+    const currentPage = Math.floor(first.value / rows.value) + 1;
+    cargarPacientes(currentPage, rows.value, busquedaActual.value);
 };
 </script>
 
 <template>
-    <div class="p-4">
+    <div class="card shadow-sm border-0 rounded-4 p-4">
         <TablaPacientes 
             :pacientes="pacientes" 
             :totalRecords="totalRecords" 
@@ -96,6 +118,7 @@ const alGuardar = () => {
             @editar="abrirEditar"
             @ver-pesaje="abrirPesajes" 
             @ver-dieta="abrirDieta" 
+            @cambiar-estado="handleCambiarEstado" 
         />
 
         <Dialog v-model:visible="mostrarModal"

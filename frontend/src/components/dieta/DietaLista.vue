@@ -45,7 +45,6 @@ const generarPDF = async (dataResumida: any) => {
         const talla = rawPaciente.altura_Cm || rawPaciente.Altura_Cm || 0;
         const imc = rawPaciente.imc || rawPaciente.Imc || 0;
 
-        // 4. Mapear todo junto
         const datosFinales = {
             id_Dieta: rawDieta.id_Dieta || rawDieta.Id_Dieta,
             nombre: rawDieta.nombre || rawDieta.Nombre || 'Plan Personalizado',
@@ -71,7 +70,6 @@ const generarPDF = async (dataResumida: any) => {
 
         dietaParaImprimir.value = datosFinales;
 
-        // 5. Generar PDF
         await nextTick();
         
         setTimeout(async () => {

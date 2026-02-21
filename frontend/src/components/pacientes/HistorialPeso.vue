@@ -30,6 +30,8 @@ const loading = ref(false);
 const enviando = ref(false);
 const chartKey = ref(0);
 
+const errores = ref<Record<string, string>>({});
+
 const filtroDias = ref<number | null>(60);
 const opcionesFiltro = ref([
     { label: 'Todo el historial', value: null },
@@ -128,24 +130,54 @@ const chartOptions = ref({
     }
 });
 
+const procesarErrores = (errorRes: any) => {
+    errores.value = {};
+    
+    if (errorRes.errors && typeof errorRes.errors === 'object') {
+        for (const [key, messages] of Object.entries(errorRes.errors)) {
+            const normalizedKey = key.toLowerCase();
+            if (Array.isArray(messages) && messages.length > 0) {
+                errores.value[normalizedKey] = messages[0];
+            }
+        }
+    } 
+    else if (errorRes.message) {
+        toast.add({ severity: 'error', summary: 'Error', detail: errorRes.message, life: 3000 });
+    }
+};
+
 const guardarPesaje = async () => {
-    if (!form.value.peso) return;
+    errores.value = {};
     enviando.value = true;
+
     try {
         const dto: PesajeRequestDTO = {
             Id_Paciente: props.paciente.Id_Paciente,
-            Peso_Kg: form.value.peso,
+            Peso_Kg: form.value.peso ?? 0, 
             Fecha_Pesaje: form.value.fecha,
             Porcentaje_Grasa: form.value.grasa,
             Masa_Muscular_Kg: form.value.musculo,
             Nota: form.value.nota
         };
+        
         await PesajeService.registrar(dto);
+        
         toast.add({ severity: 'success', summary: 'Guardado', detail: 'Registro actualizado', life: 3000 });
         form.value = { peso: null, fecha: new Date(), grasa: null, musculo: null, nota: '' };
         cargarHistorial();
     } catch (error: any) {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar', life: 3000 });
+        console.error("Error al registrar pesaje:", error);
+        
+        const errorData = error.response?.data || error;
+        
+        // Procesamos para pintar los inputs de rojo
+        procesarErrores(errorData);
+        
+        if (Object.keys(errores.value).length > 0) {
+            toast.add({ severity: 'error', summary: 'Validación', detail: 'Revisa los campos marcados en rojo.', life: 4000 });
+        } else if (!errorData.message) {
+            toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar el registro.', life: 3000 });
+        }
     } finally {
         enviando.value = false;
     }
@@ -164,30 +196,73 @@ const guardarPesaje = async () => {
                         <div class="d-flex flex-column gap-3">
                             <h6 class="text-primary fw-bold mb-0"><i class="pi pi-plus-circle me-2"></i>Nuevo Registro</h6>
                             <Divider class="my-0"/>
+                            
                             <div>
                                 <label class="small fw-bold mb-1">Fecha</label>
-                                <DatePicker v-model="form.fecha" showIcon dateFormat="dd/mm/yy" class="w-100 p-inputtext-sm" />
+                                <DatePicker 
+                                    v-model="form.fecha" 
+                                    showIcon 
+                                    dateFormat="dd/mm/yy" 
+                                    class="w-100 p-inputtext-sm"
+                                    :class="{ 'p-invalid': errores['fecha_pesaje'] }" 
+                                />
+                                <small v-if="errores['fecha_pesaje']" class="text-danger d-block mt-1">{{ errores['fecha_pesaje'] }}</small>
                             </div>
                             
                             <div class="row g-2">
                                 <div class="col-12">
                                     <label class="small fw-bold text-success">Peso (kg)*</label>
-                                    <InputNumber v-model="form.peso" :min="0" :maxFractionDigits="2" suffix=" kg" class="w-100 p-inputtext-sm" />
+                                    <InputNumber 
+                                        v-model="form.peso" 
+                                        :min="0" 
+                                        :maxFractionDigits="2" 
+                                        suffix=" kg" 
+                                        class="w-100 p-inputtext-sm"
+                                        :class="{ 'p-invalid': errores['peso_kg'] }" 
+                                    />
+                                    <small v-if="errores['peso_kg']" class="text-danger d-block mt-1">{{ errores['peso_kg'] }}</small>
                                 </div>
+                                
                                 <div class="col-6">
                                     <label class="small fw-bold mb-1">Masa Muscular</label>
-                                    <InputNumber v-model="form.musculo" :min="0" :maxFractionDigits="2" suffix=" kg" class="w-100 p-inputtext-sm" />
+                                    <InputNumber 
+                                        v-model="form.musculo" 
+                                        :min="0" 
+                                        :maxFractionDigits="2" 
+                                        suffix=" kg" 
+                                        class="w-100 p-inputtext-sm"
+                                        :class="{ 'p-invalid': errores['masa_muscular_kg'] }" 
+                                    />
+                                    <small v-if="errores['masa_muscular_kg']" class="text-danger d-block mt-1">{{ errores['masa_muscular_kg'] }}</small>
                                 </div>
+                                
                                 <div class="col-6">
                                     <label class="small fw-bold mb-1">% Grasa</label>
-                                    <InputNumber v-model="form.grasa" :min="0" :max="100" suffix=" %" class="w-100 p-inputtext-sm" />
+                                    <InputNumber 
+                                        v-model="form.grasa" 
+                                        :min="0" 
+                                        :max="100" 
+                                        suffix=" %" 
+                                        class="w-100 p-inputtext-sm"
+                                        :class="{ 'p-invalid': errores['porcentaje_grasa'] }" 
+                                    />
+                                    <small v-if="errores['porcentaje_grasa']" class="text-danger d-block mt-1">{{ errores['porcentaje_grasa'] }}</small>
                                 </div>
                             </div>
 
                             <div>
                                 <label class="small fw-bold mb-1">Notas / Observaciones</label>
-                                <Textarea v-model="form.nota" rows="5" class="w-100" placeholder="Escribe aquí los detalles..." style="resize: none;" />
+                                <Textarea 
+                                    v-model="form.nota" 
+                                    rows="5" 
+                                    class="w-100" 
+                                    placeholder="Escribe aquí los detalles..." 
+                                    style="resize: none;"
+                                    :class="{ 'p-invalid': errores['nota'] }" 
+                                />
+                                <small v-if="errores['nota']" class="text-danger d-block mt-1">{{ errores['nota'] }}</small>
                             </div>
+                            
                             <Button label="Guardar" icon="pi pi-save" class="w-100 mt-2" :loading="enviando" @click="guardarPesaje" />
                         </div>
                     </template>
@@ -226,7 +301,7 @@ const guardarPesaje = async () => {
                         <DataTable :value="historial" :rows="4" paginator size="small" class="tiny-table">
                             <Column header="Fecha">
                                 <template #body="{ data }">
-                                    {{ new Date(data.Fecha_Pesaje || data.fecha_Pesaje).toLocaleDateString() }}
+                                    {{ new Date(data.Fecha_Pesaje || data.fecha_Pesaje).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) }}
                                 </template>
                             </Column>
                             <Column header="Peso">
@@ -291,5 +366,8 @@ const guardarPesaje = async () => {
 :deep(.tiny-table .p-datatable-tbody > tr > td) {
     padding: 0.5rem;
     font-size: 0.85rem;
+}
+.p-invalid {
+    border-color: #ef4444 !important;
 }
 </style>

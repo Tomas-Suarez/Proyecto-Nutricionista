@@ -160,7 +160,6 @@ const menuItems = computed(() => {
             { label: 'Inicio', icon: 'pi pi-home', path: '/app/dashboard' },
             { label: 'Pacientes', icon: 'pi pi-users', path: '/app/pacientes' },
             { label: 'Comidas', icon: 'pi pi-apple', path: '/app/comidas' },
-            { label: 'Análisis', icon: 'pi pi-chart-pie', path: '/app/analisis' },
             { label: 'Archivos', icon: 'pi pi-folder', path: '/app/archivos' },
         ];
     }
