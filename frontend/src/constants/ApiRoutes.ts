@@ -96,6 +96,7 @@ export abstract class ApiRoutes {
     Modificar: (id: number) => `/Patologia/${id}`, //PUT
     ObtenerTodas: `/Patologia`, //GET
     Eliminar: (id: number) => `/Patologia/${id}`, //DELETE
+    ObtenerPaginado: (page: number, size: number) => `/Patologia/paginado?page=${page}&size=${size}`,
   };
 
   public static readonly Objetivo = {
@@ -104,5 +105,6 @@ export abstract class ApiRoutes {
     Modificar: (id: number) => `/Objetivo/${id}`, //PUT
     ObtenerTodas: `/Objetivo`, //GET
     Eliminar: (id: number) => `/Objetivo/${id}`, //DELETE
+    ObtenerPaginado: (page: number, size: number) => `/Objetivo/paginado?page=${page}&size=${size}`,
   };
 }

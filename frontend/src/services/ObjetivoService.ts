@@ -21,5 +21,10 @@ export const ObjetivoService = {
 
     async eliminar(id: number): Promise<void>{
         await apiClient.delete<void>(ApiRoutes.Objetivo.Eliminar(id))
+    },
+
+    obtenerPaginado: async (page: number, size: number) => {
+        const response = await apiClient.get(ApiRoutes.Objetivo.ObtenerPaginado(page, size));
+        return response.data;
     }
 }

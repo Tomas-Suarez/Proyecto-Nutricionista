@@ -1,3 +1,4 @@
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 
@@ -14,4 +15,6 @@ public interface IObjetivoService
     Task<List<ObjetivoResponseDTO>> ListarTodos();
 
     Task<ObjetivoResponseDTO> ObtenerPorId(int id);
+
+    Task<PagedResponseDTO<ObjetivoResponseDTO>> ObtenerPaginado(int page, int size);
 }

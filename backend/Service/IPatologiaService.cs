@@ -1,3 +1,4 @@
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 
@@ -14,4 +15,6 @@ public interface IPatologiaService
     Task<List<PatologiaResponseDTO>> ListarTodas();
     
     Task<PatologiaResponseDTO> ObtenerPorId(int id);
+
+    Task<PagedResponseDTO<PatologiaResponseDTO>> ObtenerPaginado(int page, int size);
 }

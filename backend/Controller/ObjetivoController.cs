@@ -1,3 +1,4 @@
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Service;
@@ -47,5 +48,12 @@ public class ObjetivoController : ControllerBase
     {
         await _objetivoService.Eliminar(id);
         return NoContent();
+    }
+
+    [Authorize(Roles = $"{nameof(Nutricionista)},{nameof(Admin)}")]
+    [HttpGet("paginado")]
+    public async Task<ActionResult<PagedResponseDTO<ObjetivoResponseDTO>>> ObtenerPaginado([FromQuery] int page = 1, [FromQuery] int size = 5)
+    {
+        return Ok(await _objetivoService.ObtenerPaginado(page, size));
     }
 }

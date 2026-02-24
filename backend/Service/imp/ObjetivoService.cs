@@ -1,5 +1,6 @@
 using AutoMapper;
 using backend.Data;
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Exceptions;
@@ -95,5 +96,22 @@ public class ObjetivoService : IObjetivoService
         var entidad = await _context.Objetivos.FindAsync(id)
             ?? throw new ResourceNotFoundException($"No se encontró objetivo con el id: {id}");
         return _mapper.Map<ObjetivoResponseDTO>(entidad);
+    }
+
+    public async Task<PagedResponseDTO<ObjetivoResponseDTO>> ObtenerPaginado(int page, int size)
+    {
+        var query = _context.Objetivos.AsQueryable();
+
+        var totalRegistros = await query.CountAsync();
+
+        var lista = await query
+            .OrderBy(o => o.Nombre)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
+
+        var itemsDTO = _mapper.Map<List<ObjetivoResponseDTO>>(lista);
+
+        return new PagedResponseDTO<ObjetivoResponseDTO>(itemsDTO, totalRegistros, page, size);
     }
 }

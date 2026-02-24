@@ -1,5 +1,6 @@
 using AutoMapper;
 using backend.Data;
+using backend.Dtos.Common;
 using backend.Dtos.request;
 using backend.Dtos.response;
 using backend.Exceptions;
@@ -104,5 +105,22 @@ public class PatologiaService : IPatologiaService
             .ToListAsync();
 
         return _mapper.Map<List<PatologiaResponseDTO>>(lista);
+    }
+
+    public async Task<PagedResponseDTO<PatologiaResponseDTO>> ObtenerPaginado(int page, int size)
+    {
+        var query = _context.Patologias.AsQueryable();
+
+        var totalRegistros = await query.CountAsync();
+
+        var lista = await query
+            .OrderBy(o => o.Nombre)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
+
+        var itemsDTO = _mapper.Map<List<PatologiaResponseDTO>>(lista);
+
+        return new PagedResponseDTO<PatologiaResponseDTO>(itemsDTO, totalRegistros, page, size);
     }
 }
