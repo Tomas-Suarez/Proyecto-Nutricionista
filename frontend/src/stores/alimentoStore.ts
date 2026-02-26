@@ -33,7 +33,7 @@ export const useAlimentosStore = defineStore('alimentos', () => {
         try {
             const respuesta: any = await ComidaService.obtenerTodas(
                 paginaActual.value,
-                20,
+                10,
                 filtrosActuales.value.idCategoria,
                 filtrosActuales.value.busqueda
             );
@@ -54,7 +54,7 @@ export const useAlimentosStore = defineStore('alimentos', () => {
                 catalogo.value.push(...itemsMapeados);
             }
 
-            if (itemsMapeados.length < 20) {
+            if (itemsMapeados.length < 10) {
                 hayMasResultados.value = false;
             }
 

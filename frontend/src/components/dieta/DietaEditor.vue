@@ -57,6 +57,19 @@ const busquedaCatalogo = ref('');
 const indiceGrupoActivo = ref(0);
 const menuActivoIndex = ref(0); 
 
+const onScrollCatalogo = (event: Event) => {
+    const el = event.target as HTMLElement;
+    const distanciaAlFondo = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    if (distanciaAlFondo < 50) {
+        if (!alimentosStore.loading && alimentosStore.hayMasResultados) {
+            if (alimentosStore.cargarMas) {
+                alimentosStore.cargarMas();
+            }
+        }
+    }
+};
+
 const mapMomentoToEnum = (momento: string): EHorarioComida => {
     switch (momento) {
         case 'Desayuno': return EHorarioComida.Desayuno;
@@ -291,7 +304,6 @@ const guardar = async () => {
         });
     });
 
-    // MENÚ
     ejemplosMenu.value.forEach((menu, index) => {
         const diaBackend = index + 1;
         momentosDia.forEach(momentoVisual => {
@@ -375,10 +387,17 @@ const guardar = async () => {
                                                 <InputIcon class="pi pi-search" />
                                                 <InputText v-model="busquedaCatalogo" placeholder="Buscar..." class="w-100 p-inputtext-sm" />
                                             </IconField>
-                                            <ScrollPanel style="height: 400px" class="border rounded p-2 bg-black-opacity position-relative">
-                                                <div v-if="alimentosStore.loading" class="d-flex justify-content-center align-items-center h-100 w-100 position-absolute top-0 start-0 bg-black-opacity" style="z-index: 10;">
+                                            
+                                            <div 
+                                                class="border rounded p-2 bg-black-opacity position-relative custom-scrollbar" 
+                                                style="height: 400px; overflow-y: auto;" 
+                                                @scroll="onScrollCatalogo"
+                                            >
+                                                
+                                                <div v-if="alimentosStore.loading && alimentosStore.catalogo.length === 0" class="d-flex justify-content-center align-items-center h-100 w-100 position-absolute top-0 start-0 bg-black-opacity" style="z-index: 10;">
                                                     <i class="pi pi-spin pi-spinner text-primary" style="font-size: 2rem;"></i>
                                                 </div>
+                                                
                                                 <div class="d-flex flex-column gap-2">
                                                     <div v-for="item in alimentosStore.catalogo" :key="item.id_Comida"
                                                         class="p-2 border rounded cursor-grab item-draggable bg-surface-card"
@@ -388,9 +407,15 @@ const guardar = async () => {
                                                         <div class="d-flex justify-content-between"><span class="fw-bold small">{{ item.nombre }}</span><i v-if="obtenerEstado(item.id_Comida)" class="pi pi-check text-success text-xs"></i></div>
                                                         <small class="text-primary fw-bold mb-0">{{ item.porcion }} | {{ item.calorias }} kcal</small>
                                                     </div>
+
+                                                    <div class="text-center py-2" style="min-height: 40px;">
+                                                        <i v-if="alimentosStore.loading && alimentosStore.catalogo.length > 0" class="pi pi-spin pi-spinner text-primary"></i>
+                                                        <span v-if="!alimentosStore.hayMasResultados && alimentosStore.catalogo.length > 0" class="text-muted small">No hay más alimentos</span>
+                                                    </div>
+                                                    
                                                 </div>
-                                            </ScrollPanel>
-                                        </div>
+                                            </div>
+                                            </div>
                                     </div>
                                     <div class="col-md-9">
                                         <div class="row h-100">
@@ -505,4 +530,9 @@ const guardar = async () => {
 .cursor-grab { cursor: grab; }
 .text-xs { font-size: 0.75rem; }
 .text-info { color: #22d3ee !important; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 </style>
